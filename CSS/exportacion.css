@@ -1,0 +1,135 @@
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #f4f4f4;
+  margin: 0;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  background: #a0461b;
+  color: white;
+  height: 100vh;
+  width: 200px;
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0;
+  border-radius: 0 25px 25px 0;
+}
+.sidebar h2 {
+  margin-bottom: 40px;
+  font-weight: 700;
+}
+.nav-item {
+  color: #fff;
+  text-decoration: none;
+  margin: 10px 0;
+  padding: 12px 18px;
+  width: 90%;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+.nav-item i {
+  font-size: 18px;
+  width: 20px;
+  text-align: center;
+}
+.nav-item:hover {
+  background: #c56e40;
+  transform: translateX(4px);
+}
+.nav-item.active {
+  background: linear-gradient(90deg, #d66b3d, #e68a58);
+  box-shadow: inset 3px 0 0 #fff;
+}
+
+/* ===== MAIN ===== */
+.main-content {
+  margin-left: 220px;
+  padding: 40px;
+}
+h1 {
+  font-weight: 700;
+  color: #222;
+}
+
+/* ===== EXPORT CONTAINER ===== */
+.export-container {
+  background: #fff;
+  border-radius: 20px;
+  padding: 30px 40px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  max-width: 600px;
+  margin: 0 auto;
+}
+.export-container h5 {
+  font-weight: 600;
+  color: #000;
+}
+
+/* ===== FORM ===== */
+.form-group {
+  margin-bottom: 20px;
+}
+.form-group label {
+  display: block;
+  font-weight: 500;
+  font-size: 14px;
+  margin-bottom: 5px;
+  color: #333;
+}
+.form-select {
+  background: #ddd;
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ===== BUTTONS ===== */
+.export-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 25px;
+}
+.btn-export {
+  border: none;
+  border-radius: 25px;
+  color: white;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: 0.3s;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+.btn-export i {
+  font-size: 20px;
+}
+.btn-export.pdf {
+  background: #c0392b;
+}
+.btn-export.pdf:hover {
+  background: #a93226;
+}
+.btn-export.word {
+  background: #1e4f91;
+}
+.btn-export.word:hover {
+  background: #163b6b;
+}
+.btn-export.excel {
+  background: #28a745;
+}
+.btn-export.excel:hover {
+  background: #1e7e34;
+}

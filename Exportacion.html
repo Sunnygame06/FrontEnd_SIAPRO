@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exportación de Registros - SIAPRO</title>
+
+  <!-- Bootstrap y Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+  <!-- Fuente Poppins -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- CSS personalizado -->
+  <link rel="stylesheet" href="css/Exportacion.css">
+</head>
+
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>SIAPRO</h2>
+    <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i> Inicio</a>
+    <a href="Solicitantes.html" class="nav-item"><i class="fa-solid fa-user"></i> Solicitantes</a>
+    <a href="Inventario.html" class="nav-item"><i class="fa-solid fa-box"></i> Inventario</a>
+    <a href="Exportacion.html" class="nav-item active"><i class="fa-solid fa-download"></i> Exportación</a>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="main-content">
+    <h1 class="text-center mb-4">EXPORTACIÓN DE REGISTROS</h1>
+
+    <div class="export-container">
+      <h5 class="text-center mb-4">SELECCIONAR REGISTROS PARA EXPORTAR</h5>
+
+      <div class="form-group">
+        <label>Seleccionar registro de solicitante</label>
+        <select class="form-select">
+          <option value="">Seleccione un solicitante</option>
+          <option value="1">Carmen Liseth Barahona</option>
+          <option value="2">Juan Pérez</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Seleccionar registro de Inventario de insumos</label>
+        <select class="form-select">
+          <option value="">Seleccione un inventario</option>
+          <option value="1">Impresora EPSON</option>
+          <option value="2">Tóner HP</option>
+        </select>
+      </div>
+
+      <div class="export-buttons">
+     <button class="btn-export pdf">
+  <span>Exportar a PDF</span>
+  <i class="fa-solid fa-file-pdf"></i>
+</button>
+
+        <button class="btn-export word">
+          Exportar a WORD <i class="fa-solid fa-file-word"></i>
+        </button>
+        <button class="btn-export excel">
+          Exportar a EXCEL <i class="fa-solid fa-file-excel"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

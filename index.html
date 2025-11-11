@@ -31,7 +31,7 @@
     <div class="header">
       <img src="img/procivil-png-peque-1.png" alt="Protección Civil">
       <div class="title">
-        <h3>Buenos días</h3>
+        <h3 id="saludo"></h3>
         <p>Bienvenido al Sistema SIAPRO</p>
       </div>
       <img src="img/MIGOBSV.png" alt="Ministerio de Gobernación">
@@ -74,6 +74,23 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // ===== Saludo dinámico según la hora =====
+    const saludoEl = document.getElementById("saludo");
+    const hora = new Date().getHours();
+
+    let saludo = "";
+    if (hora >= 5 && hora < 12) {
+      saludo = "Buenos días";
+    } else if (hora >= 12 && hora < 18) {
+      saludo = "Buenas tardes";
+    } else {
+      saludo = "Buenas noches";
+    }
+
+    saludoEl.textContent = saludo;
+  </script>
+
   <script src="js/inicio.js"></script>
 </body>
 </html>

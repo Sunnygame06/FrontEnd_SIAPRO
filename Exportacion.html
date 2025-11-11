@@ -33,29 +33,29 @@
     <div class="export-container">
       <h5 class="text-center mb-4">SELECCIONAR REGISTROS PARA EXPORTAR</h5>
 
-      <div class="form-group">
+      <div class="form-group mb-3">
         <label>Seleccionar registro de solicitante</label>
-        <select class="form-select">
+        <select id="solicitanteSelect" class="form-select">
           <option value="">Seleccione un solicitante</option>
-          <option value="1">Carmen Liseth Barahona</option>
-          <option value="2">Juan Pérez</option>
+          <option value="Carmen Liseth Barahona">Carmen Liseth Barahona</option>
+          <option value="Juan Pérez">Juan Pérez</option>
         </select>
       </div>
 
-      <div class="form-group">
+      <div class="form-group mb-4">
         <label>Seleccionar registro de Inventario de insumos</label>
-        <select class="form-select">
+        <select id="inventarioSelect" class="form-select">
           <option value="">Seleccione un inventario</option>
-          <option value="1">Impresora EPSON</option>
-          <option value="2">Tóner HP</option>
+          <option value="Impresora EPSON">Impresora EPSON</option>
+          <option value="Tóner HP">Tóner HP</option>
         </select>
       </div>
 
-      <div class="export-buttons">
-     <button class="btn-export pdf">
-  <span>Exportar a PDF</span>
-  <i class="fa-solid fa-file-pdf"></i>
-</button>
+      <div class="export-buttons text-center">
+        <button id="btnExportarPDF" class="btn-export pdf">
+          <span>Exportar a PDF</span>
+          <i class="fa-solid fa-file-pdf"></i>
+        </button>
 
         <button class="btn-export word">
           Exportar a WORD <i class="fa-solid fa-file-word"></i>
@@ -67,7 +67,48 @@
     </div>
   </div>
 
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Plantilla del documento PDF (no visible en pantalla) -->
+  <div id="formularioExportacion" style="display:none; font-family:'Poppins', sans-serif; padding:20px; width:800px; border:1px solid #000;">
+    <h3 style="text-align:center; text-transform:uppercase;">Hoja de Solicitud / Entrega / Instalación de Tintas para Impresores</h3>
+    <p style="text-align:right;">Fecha: <span id="fechaPDF"></span></p>
+
+    <table border="1" cellspacing="0" cellpadding="6" width="100%">
+      <tr><th colspan="2">DATOS DEL SOLICITANTE</th></tr>
+      <tr><td><b>Solicitante:</b></td><td id="pdfSolicitante"></td></tr>
+      <tr><td><b>Departamento:</b></td><td>San Salvador</td></tr>
+      <tr><td><b>Correo:</b></td><td>correo@ejemplo.com</td></tr>
+      <tr><td><b>Teléfono:</b></td><td>7220-3191</td></tr>
+    </table>
+
+    <br>
+
+    <table border="1" cellspacing="0" cellpadding="6" width="100%">
+      <tr><th colspan="2">DATOS DEL EQUIPO</th></tr>
+      <tr><td><b>Equipo / Insumo:</b></td><td id="pdfInsumo"></td></tr>
+      <tr><td><b>Marca:</b></td><td>EPSON</td></tr>
+      <tr><td><b>Modelo:</b></td><td>L3150</td></tr>
+      <tr><td><b>Serie:</b></td><td>C8Y3K09724</td></tr>
+    </table>
+
+    <br><br>
+
+    <div style="display:flex; justify-content:space-between; margin-top:40px;">
+      <div>
+        <p>________________________</p>
+        <p><b>Entregado por:</b></p>
+      </div>
+      <div>
+        <p>________________________</p>
+        <p><b>Recibido por:</b></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Librerías necesarias -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- Tu script -->
+  <script src="exportacion.js"></script>
 </body>
 </html>

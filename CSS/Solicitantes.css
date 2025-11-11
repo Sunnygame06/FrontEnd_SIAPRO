@@ -1,6 +1,7 @@
 body {
   background-color: #f4f4f4;
   font-family: 'Poppins', sans-serif;
+  margin: 0;
 }
 
 /* ===== SIDEBAR ===== */
@@ -8,14 +9,15 @@ body {
   background: #a0461b;
   color: white;
   height: 100vh;
-  width: 200px;
+  width: 220px;
   position: fixed;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 20px 0;
-  border-radius: 0 0 0 0;
+  border-radius: 0 25px 25px 0;
   box-shadow: 4px 0 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
 }
 
 .sidebar h2 {
@@ -24,7 +26,6 @@ body {
   letter-spacing: 1px;
 }
 
-/* ===== NAV ITEMS ===== */
 .nav-item {
   color: #fff;
   text-decoration: none;
@@ -45,30 +46,29 @@ body {
   text-align: center;
 }
 
-/* Hover */
 .nav-item:hover {
   background: #c56e40;
   transform: translateX(4px);
 }
 
-/* Active (página actual) */
 .nav-item.active {
   background: linear-gradient(90deg, #d66b3d, #e68a58);
   color: #fff;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  width: 85%;
+  box-shadow: inset 3px 0 0 #fff;
 }
 
 /* ===== MAIN CONTENT ===== */
 .main-content {
-  margin-left: 220px;
+  margin-left: 240px;
   padding: 30px;
+  transition: margin-left 0.3s ease;
 }
 
 .search-container {
   position: relative;
   max-width: 1000px;
   margin-bottom: 20px;
+  width: 100%;
 }
 
 .search-container input {
@@ -77,6 +77,7 @@ body {
   border: none;
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  font-size: 15px;
 }
 
 .search-container i {
@@ -92,12 +93,13 @@ body {
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
 }
 
 .table-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: flex-start;
   gap: 10px;
   margin-bottom: 15px;
 }
@@ -108,8 +110,109 @@ body {
   border: none;
   border-radius: 20px;
   padding: 8px 15px;
+  font-size: 14px;
+  transition: background 0.3s ease;
 }
 
 .add-btn:hover {
   background: #163b6b;
+}
+
+/* ===== TABLE RESPONSIVE ===== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+th, td {
+  text-align: center;
+  padding: 10px;
+  white-space: nowrap;
+}
+
+thead th {
+  background: #1e4f91;
+  color: white;
+}
+
+tbody tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+tbody tr:hover {
+  background: #eaeaea;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 992px) {
+  .sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    justify-content: space-around;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .sidebar h2 {
+    display: none;
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding: 20px;
+  }
+
+  .nav-item {
+    font-size: 14px;
+    padding: 10px 12px;
+    width: auto;
+    border-radius: 8px;
+  }
+
+  .table-container {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .table-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .add-btn, 
+  .table-actions select {
+    width: 100%;
+  }
+
+  .search-container input {
+    font-size: 14px;
+  }
+
+  .main-content {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 576px) {
+  th, td {
+    font-size: 13px;
+    padding: 8px;
+  }
+
+  .nav-item i {
+    font-size: 16px;
+  }
+
+  .search-container input {
+    padding: 8px 35px 8px 10px;
+  }
+
+  .add-btn {
+    font-size: 13px;
+    padding: 6px 12px;
+  }
 }

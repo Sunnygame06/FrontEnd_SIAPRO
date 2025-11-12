@@ -59,80 +59,219 @@
 
     <!-- TABLA -->
     <div class="table-container mt-4">
-      <div class="table-actions">
-        <button class="add-btn"><i class="fa-solid fa-plus"></i> Agregar insumo</button>
-        <div class="search-box">
-          <input type="text" placeholder="Buscar Insumo">
-          <i class="fa-solid fa-magnifying-glass"></i>
-        </div>
+<div class="table-actions">
+  <button class="add-btn"><i class="fa-solid fa-plus"></i> Agregar insumo</button>
+
+  <!-- 🟩 SELECT DE FILTRO con mismo tamaño y texto -->
+  <div style="display:inline-flex; align-items:center; margin-left:10px;">
+    <label for="filtro-estado" style="margin-right:6px; font-weight:500;">Mostrar:</label>
+    <select id="filtro-estado" class="form-select" 
+            style="width:160px; height:38px; font-size:14px;">
+      <option value="todos" selected>Todos</option>
+      <option value="pendiente">Pendiente</option>
+      <option value="entregado">Entregado</option>
+    </select>
+  </div>
+
+  <div class="search-box">
+    <input type="text" placeholder="Buscar Insumo">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </div>
+</div>
+
+
       </div>
 
-      <table class="table table-striped align-middle">
-        <thead class="table-dark">
-          <tr>
-            <th>ID</th>
-            <th>Marca</th>
-            <th>Modelo</th>
-            <th>Serie</th>
-            <th>Inventario</th>
-            <th>Asignado a</th>
-            <th>Instalado en</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>1</td><td>EPSON</td><td>Print</td><td>N/A</td><td>8.3.0.4.04.084</td>
-            <td>Carmen Liseth Barahona</td><td>Recepción DGPC</td>
-            <td>
-              <i class="fa-solid fa-pen-to-square text-primary me-2"></i>
-              <i class="fa-solid fa-trash text-danger me-2"></i>
-              <i class="fa-solid fa-eye text-secondary ver-detalle" style="cursor:pointer"></i>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+<table class="table" id="tabla-inventario">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Marca</th>
+      <th>Modelo</th>
+      <th>Serie</th>
+      <th>Inventario</th>
+      <th>Asignado a</th>
+      <th>Instalado en</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>EPSON</td>
+      <td>Print</td>
+      <td>N/A</td>
+      <td>8.3.0.4.04.084</td>
+      <td>Carmen Liseth Barahona</td>
+      <td>Recepción DGPC</td>
+      <td>
+        <i class="fa-solid fa-pen-to-square text-primary me-2"></i>
+        <i class="fa-solid fa-trash text-danger me-2"></i>
+        <i class="fa-solid fa-eye text-secondary me-2 ver-detalle"></i>
+        <select class="estado-select form-select form-select-sm" style="width:auto;display:inline-block">
+          <option value="pendiente" selected>Pendiente</option>
+          <option value="entregado">Entregado</option>
+        </select>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
     </div>
   </div>
 
-  <!-- MODAL DE INFORMACIÓN COMPLETA -->
-  <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content info-modal">
-        <div class="modal-header border-0">
-          <h5 class="modal-title w-100 text-center" id="infoModalLabel">Información completa</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-        </div>
+<!-- Modal para ver detalles -->
+<div class="modal fade" id="verModal" tabindex="-1" aria-labelledby="verModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content info-modal">
+      <div class="modal-header">
+        <h5 class="modal-title" id="verModalLabel">Detalles del Producto</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="info-grid">
+          <!-- 🟧 LADO IZQUIERDO -->
+          <div>
+            <b>Marca:</b> <span id="detalleMarca"></span>
+          </div>
+          <div>
+            <b>Modelo:</b> <span id="detalleModelo"></span>
+          </div>
+          <div>
+            <b>Serie:</b> <span id="detalleSerie"></span>
+          </div>
+          <div>
+            <b>Inventario:</b> <span id="detalleInventario"></span>
+          </div>
+          <div>
+            <b>Asignado a:</b> <span id="detalleAsignado"></span>
+          </div>
+          <div>
+            <b>Instalado en:</b> <span id="detalleInstalado"></span>
+          </div>
 
-        <div class="modal-body">
-          <div class="info-grid">
-            <div><b>Nombre:</b> <span id="infoNombre">EDWIN</span></div>
-            <div><b>Unidad:</b> <span id="infoUnidad">N/A</span></div>
-            <div><b>Cargo:</b> <span id="infoCargo">TINTA</span></div>
-            <div><b>Departamento:</b> <span id="infoDepartamento">San Salvador</span></div>
-            <div><b>Teléfono:</b> <span id="infoTelefono">1234-5678</span></div>
-            <div><b>Correo:</b> <span id="infoCorreo">edwin@gmail.com</span></div>
-            <div><b>Municipio:</b> <span id="infoMunicipio">N/A</span></div>
-            <div><b>Dirección:</b> <span id="infoDireccion">Calle Luna #12</span></div>
-            <div><b>Región:</b> <span id="infoRegion">Central</span></div>
-            <div><b>Ubicado:</b> <span id="infoUbicado">Calle Luna #12</span></div>
+          <!-- 🟧 LADO DERECHO -->
+          <div>
+            <b>Insumo:</b> <span id="detalleInsumo"></span>
+          </div>
+          <div>
+            <b>Marca (Insumo):</b> <span id="detalleMarcaInsumo"></span>
+          </div>
+          <div>
+            <b>Descripción:</b> <span id="detalleDescripcion"></span>
+          </div>
+          <div>
+            <b>Presentación ML:</b> <span id="detallePresentacion"></span>
+          </div>
+          <div>
+            <b>Estado:</b> <span id="detalleEstado"></span>
+          </div>
+          <div>
+            <b>Origen:</b> <span id="detalleOrigen"></span>
           </div>
         </div>
       </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
     </div>
   </div>
+</div>
 
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const modal = new bootstrap.Modal(document.getElementById("infoModal"));
-      document.querySelectorAll(".ver-detalle").forEach(icon => {
-        icon.addEventListener("click", () => {
-          modal.show();
-        });
-      });
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const tabla = document.getElementById("tabla-inventario");
+
+  tabla.addEventListener("change", function (event) {
+    if (event.target.classList.contains("estado-select")) {
+      const fila = event.target.closest("tr");
+
+      // Limpiar clases anteriores
+      fila.classList.remove("estado-entregado", "estado-pendiente");
+
+      // Aplicar color según selección
+      if (event.target.value === "entregado") {
+        fila.classList.add("estado-entregado");
+      } else {
+        fila.classList.add("estado-pendiente");
+      }
+    }
+  });
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = new bootstrap.Modal(document.getElementById("verModal"));
+
+  document.querySelectorAll(".ver-detalle").forEach(icono => {
+    icono.addEventListener("click", (e) => {
+      const fila = e.target.closest("tr");
+      if (!fila) return;
+
+      // 🟧 Datos desde la tabla
+      const marca = fila.children[1]?.textContent || "Sin marca";
+      const modelo = fila.children[2]?.textContent || "Sin modelo";
+      const serie = fila.children[3]?.textContent || "0000";
+      const inventario = fila.children[4]?.textContent || "1001";
+      const asignado = fila.children[5]?.textContent || "No asignado";
+      const instalado = fila.children[6]?.textContent || "No especificado";
+
+      // 🟧 Datos del insumo (puedes reemplazarlos con los reales)
+      const insumo = "Tinta Epson";
+      const marcaInsumo = "EPSON";
+      const descripcion = "Cartucho";
+      const presentacion = insumo.toLowerCase().includes("tinta") ? "100 ML" : "N/A";
+      const estado = "Nuevo";
+      const origen = "Almacén Central";
+
+      // 🟧 Llenar campos del modal
+      document.getElementById("detalleMarca").textContent = marca;
+      document.getElementById("detalleModelo").textContent = modelo;
+      document.getElementById("detalleSerie").textContent = serie;
+      document.getElementById("detalleInventario").textContent = inventario;
+      document.getElementById("detalleAsignado").textContent = asignado;
+      document.getElementById("detalleInstalado").textContent = instalado;
+
+      document.getElementById("detalleInsumo").textContent = insumo;
+      document.getElementById("detalleMarcaInsumo").textContent = marcaInsumo;
+      document.getElementById("detalleDescripcion").textContent = descripcion;
+      document.getElementById("detallePresentacion").textContent = presentacion;
+      document.getElementById("detalleEstado").textContent = estado;
+      document.getElementById("detalleOrigen").textContent = origen;
+
+      modal.show();
     });
-  </script>
+  });
+});
+</script>
+<script>
+// 🟩 FILTRO DE ESTADO (Pendiente / Entregado / Todos)
+document.addEventListener("DOMContentLoaded", function () {
+  const filtro = document.getElementById("filtro-estado");
+  const filas = document.querySelectorAll("#tabla-inventario tbody tr");
+
+  filtro.addEventListener("change", function () {
+    const valor = this.value;
+
+    filas.forEach(fila => {
+      const selectEstado = fila.querySelector(".estado-select");
+      const estado = selectEstado ? selectEstado.value : "";
+
+      if (valor === "todos" || valor === estado) {
+        fila.style.display = "";
+      } else {
+        fila.style.display = "none";
+      }
+    });
+  });
+});
+</script>
+
+
+
 </body>
 </html>

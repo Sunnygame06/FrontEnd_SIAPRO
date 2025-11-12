@@ -335,3 +335,42 @@ h1 {
     float: none;
   }
 }
+
+.estado-entregado {
+  background-color: #c8f7c5 !important; /* verde claro */
+  transition: background-color 0.3s ease;
+}
+
+.estado-pendiente {
+  background-color: #fff7ae !important; /* amarillo claro */
+  transition: background-color 0.3s ease;
+}
+
+
+tr.estado-entregado > td,
+tr.estado-pendiente > td {
+  background-color: inherit !important;
+
+}
+
+/* --- Soluciona el problema del icono del ojo que no responde --- */
+.ver-detalle {
+  position: relative;
+  z-index: 10;
+  cursor: pointer;
+}
+
+select {
+  position: relative;
+  z-index: 1;
+}
+
+
+thead th {
+  text-align: center;
+  vertical-align: middle;
+  padding: 10px;
+  background-color: #000 !important;
+  color: #fff !important; 
+}
+

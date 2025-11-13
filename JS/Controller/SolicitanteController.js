@@ -1,136 +1,213 @@
 import { SolicitanteService } from "../Services/SolicitanteService.js";
 
-// Referencias a los elementos del DOM que se usarán dentro del controlador
-const tableBody = document.querySelector("#solicitanteTable tbody"); // Cuerpo de la tabla donde se mostrarán los datos
-const form = document.getElementById("SolicitanteForm"); // Formulario dentro del modal
-const modal = new bootstrap.Modal(document.getElementById("formModal")); // Instancia del modal Bootstrap
-const lbModal = document.getElementById("SolicitanteModalLabel"); // Etiqueta del título del modal
-const btnAdd = document.getElementById("addBtn"); // Botón para agregar nuevo solicitante
-const filtroDepartamento = document.getElementById("filtroDepartamento"); // Select para filtrar por departamento
-const searchInput = document.getElementById("searchInput"); // Input de búsqueda
+const addModal = document.getElementById("addModal");
+const overlay = document.getElementById("overlay");
+const addForm = document.getElementById("addForm");
 
-// URL base de la API en el backend
-const API_URL = "http://localhost:8080/api/solicitantes";
-const service = new SolicitanteService(API_URL); // Se crea una instancia del servicio
+const unidadAdd = document.getElementById("unidadAdd");
+const nombreAdd = document.getElementById("nombreAdd");
+const cargoAdd = document.getElementById("cargoAdd");
+const correoAdd = document.getElementById("correoAdd");
+const telefonoAdd = document.getElementById("telefonoAdd");
+const regionAdd = document.getElementById("regionAdd");
+const departamentoAdd = document.getElementById("departamentoAdd");
+const municipioAdd = document.getElementById("municipioAdd");
+const ubicadoAdd = document.getElementById("ubicadoAdd");
+const direccionAdd = document.getElementById("direccionAdd");
 
-// Cuando el documento haya cargado completamente, se ejecuta la función para cargar los datos iniciales
+const tableBody = document.querySelector("#solicitanteTable tbody");
+
+const searchInput = document.getElementById("searchInput");
+const filtroDepartamento = document.getElementById("filtroDepartamento");
+
+const API_URL = "http://localhost:8080/apiSolicitante";
+const service = new SolicitanteService(API_URL);
+
+let listaSolicitantes = [];
+
 document.addEventListener("DOMContentLoaded", () => {
-  cargarSolicitantes(); // Carga inicial de solicitantes
+  cargarSolicitantes();
+  searchInput.addEventListener("input", aplicarFiltros);
+  filtroDepartamento.addEventListener("change", aplicarFiltros);
 });
 
-// Evento que se activa al hacer clic en el botón “Agregar Solicitante”
-btnAdd.addEventListener("click", () => {
-  lbModal.textContent = "Agregar Nuevo Solicitante"; // Se cambia el texto del título del modal
-  form.reset(); // Limpia todos los campos del formulario
-  form.dataset.editing = false; // Marca el formulario como modo creación
-  modal.show(); // Abre el modal de Bootstrap
-});
+async function cargarSolicitantes() {
+  tableBody.innerHTML = `<tr><td colspan="8">Cargando...</td></tr>`;
+  try {
+    listaSolicitantes = await service.obtenerTodos();
+    tableBody.innerHTML = "";
+    if (!listaSolicitantes || listaSolicitantes.length === 0) {
+      tableBody.innerHTML = `<tr><td colspan='8'>No hay registros</td></tr>`;
+      return;
+    }
+    listaSolicitantes.forEach(s => crearFila(s));
+  } catch {
+    tableBody.innerHTML = `<tr><td colspan="8">Error cargando datos</td></tr>`;
+  }
+}
+function aplicarFiltros() {
+  let texto = searchInput.value.toLowerCase().trim();
+  let depto = filtroDepartamento.value.trim();
 
-// Evento de envío del formulario (tanto para agregar como para editar)
-form.addEventListener("submit", async (e) => {
-  e.preventDefault(); // Evita el comportamiento por defecto de recargar la página
+  let filtrados = listaSolicitantes.filter(s => {
+    const coincideTexto =
+      s.nombre.toLowerCase().includes(texto) ||
+      s.unidad_depto.toLowerCase().includes(texto) ||
+      s.cargo.toLowerCase().includes(texto) ||
+      s.telefono.toLowerCase().includes(texto) ||
+      s.correo.toLowerCase().includes(texto) ||
+      s.municipio.toLowerCase().includes(texto) ||
+      s.direccion.toLowerCase().includes(texto);
 
-  // Se obtienen los valores ingresados por el usuario en los campos del formulario
-  const solicitante = {
-    nombre: document.getElementById("nombre").value,
-    unidad: document.getElementById("unidad").value,
-    cargo: document.getElementById("cargo").value,
-    departamento: document.getElementById("departamento").value,
-    telefono: document.getElementById("telefono").value,
-    correo: document.getElementById("correo").value,
-    municipio: document.getElementById("municipio").value,
-    direccion: document.getElementById("direccion").value
+    const coincideDepto = depto === "" || s.departamento === depto;
+
+    return coincideTexto && coincideDepto;
+  });
+
+  tableBody.innerHTML = "";
+
+  if (filtrados.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="8">Sin resultados</td></tr>`;
+    return;
+  }
+
+  filtrados.forEach(s => crearFila(s));
+}
+
+
+function crearFila(s) {
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td>${s.id}</td>
+    <td>${s.nombre}</td>
+    <td>${s.unidad_depto}</td>
+    <td>${s.cargo}</td>
+    <td>${s.departamento}</td>
+    <td>${s.telefono}</td>
+    <td>${s.correo}</td>
+    <td>
+      <i class="fa-solid fa-pen-to-square text-primary me-2 edit-btn" style="cursor:pointer;"></i>
+      <i class="fa-solid fa-trash text-danger me-2 delete-btn" style="cursor:pointer;"></i>
+      <i class="fa-solid fa-eye text-secondary ver-detalle" style="cursor:pointer;"></i>
+    </td>
+  `;
+  tableBody.appendChild(tr);
+
+  tr.querySelector(".edit-btn").addEventListener("click", () => abrirFormularioEditar(s));
+  tr.querySelector(".delete-btn").addEventListener("click", () => eliminarSolicitante(s.id));
+  tr.querySelector(".ver-detalle").addEventListener("click", () => mostrarDetalles(s));
+}
+
+async function eliminarSolicitante(id) {
+  const confirm = await Swal.fire({
+    title: "¿Eliminar?",
+    text: "Esta acción no se puede deshacer.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Eliminar",
+    cancelButtonText: "Cancelar"
+  });
+
+  if (confirm.isConfirmed) {
+    await service.eliminar(id);
+    cargarSolicitantes();
+    Swal.fire("Eliminado", "Registro eliminado con éxito", "success");
+  }
+}
+
+function abrirFormularioEditar(s) {
+  overlay.style.display = "block";
+  addModal.style.display = "block";
+  document.body.classList.add("blurred");
+
+  addForm.dataset.editando = "true";
+  addForm.dataset.id = s.id;
+
+  unidadAdd.value = s.unidad_depto;
+  nombreAdd.value = s.nombre;
+  cargoAdd.value = s.cargo;
+  correoAdd.value = s.correo;
+  telefonoAdd.value = s.telefono;
+  regionAdd.value = s.region;
+
+  if (typeof cargarDepartamentos === "function") cargarDepartamentos();
+  departamentoAdd.value = s.departamento;
+
+  if (typeof cargarMunicipios === "function") cargarMunicipios();
+  municipioAdd.value = s.municipio;
+
+  ubicadoAdd.value = s.ubicado_en;
+  direccionAdd.value = s.direccion;
+}
+
+function cerrarFormulario() {
+  overlay.style.display = "none";
+  addModal.style.display = "none";
+  document.body.classList.remove("blurred");
+  addForm.reset();
+  addForm.dataset.editando = "false";
+  addForm.dataset.id = "";
+}
+
+addForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const dto = {
+    nombre: nombreAdd.value,
+    unidad_depto: unidadAdd.value,
+    cargo: cargoAdd.value,
+    correo: correoAdd.value,
+    telefono: telefonoAdd.value,
+    region: regionAdd.value,
+    departamento: departamentoAdd.value,
+    municipio: municipioAdd.value,
+    ubicado_en: ubicadoAdd.value,
+    direccion: direccionAdd.value
   };
 
-  // Se determina si el formulario está en modo edición o creación
-  if (form.dataset.editing === "true") {
-    const id = form.dataset.id; // Si está en edición, se obtiene el ID guardado en el dataset
-    await service.actualizar(id, solicitante); // Llama al método PUT del servicio
-  } else {
-    await service.crear(solicitante); // Llama al método POST del servicio
-  }
-
-  modal.hide(); // Cierra el modal
-  await cargarSolicitantes(); // Recarga la tabla actualizada
-});
-
-// Función para obtener y mostrar los solicitantes desde la API
-async function cargarSolicitantes() {
-  tableBody.innerHTML = "<tr><td colspan='10'>Cargando...</td></tr>"; // Mensaje temporal mientras se cargan los datos
   try {
-    const data = await service.obtenerTodos(); // Se obtiene la lista desde el backend
-    tableBody.innerHTML = ""; // Se limpia el contenido anterior
-    data.forEach(solicitante => crearFila(solicitante)); // Se recorre el arreglo y se crean las filas dinámicamente
-  } catch (err) {
-    console.error("Error al cargar solicitantes", err); // En caso de error se muestra en consola
+    if (addForm.dataset.editando === "true") {
+      const id = addForm.dataset.id;
+      await service.actualizar(id, dto);
+      Swal.fire("Actualizado", "El registro fue actualizado con éxito", "success");
+    } else {
+      await service.crear(dto);
+      Swal.fire("Guardado", "Solicitante agregado correctamente", "success");
+    }
+
+    cerrarFormulario();
+    cargarSolicitantes();
+
+  } catch {
+    Swal.fire({
+      title: "Error",
+      text: "Ocurrió un error al enviar la información",
+      icon: "error"
+    });
   }
-}
-
-// Crea dinámicamente una fila de la tabla con los datos del solicitante
-function crearFila(cat) {
-  const row = document.createElement("tr"); // Se crea una fila (TR)
-  row.innerHTML = `
-    <td>${cat.idSolicitante || ''}</td>
-    <td>${cat.nombre || ''}</td>
-    <td>${cat.unidad || ''}</td>
-    <td>${cat.cargo || ''}</td>
-    <td>${cat.departamento || ''}</td>
-    <td>${cat.telefono || ''}</td>
-    <td>${cat.correo || ''}</td>
-    <td>${cat.municipio || ''}</td>
-    <td>${cat.direccion || ''}</td>
-    <td>
-      <!-- Botones de acción para editar y eliminar -->
-      <button class="btn btn-sm btn-outline-secondary edit-btn">✏️</button>
-      <button class="btn btn-sm btn-outline-danger delete-btn">🗑️</button>
-    </td>`;
-  tableBody.appendChild(row); // Se agrega la fila al cuerpo de la tabla
-
-  // Eventos para los botones de acción
-  row.querySelector(".edit-btn").addEventListener("click", () => editarSolicitante(cat)); // Editar registro
-  row.querySelector(".delete-btn").addEventListener("click", () => eliminarSolicitante(cat.idSolicitante)); // Eliminar registro
-}
-
-// Rellena el formulario con los datos de un solicitante existente para editarlo
-function editarSolicitante(cat) {
-  lbModal.textContent = "Editando Solicitante"; // Cambia el texto del modal
-  form.dataset.editing = true; // Marca el formulario como modo edición
-  form.dataset.id = cat.idSolicitante; // Guarda el ID del registro a editar
-
-  // Asigna los valores del solicitante a los campos del formulario
-  document.getElementById("nombre").value = cat.nombre || "";
-  document.getElementById("unidad").value = cat.unidad || "";
-  document.getElementById("cargo").value = cat.cargo || "";
-  document.getElementById("departamento").value = cat.departamento || "";
-  document.getElementById("telefono").value = cat.telefono || "";
-  document.getElementById("correo").value = cat.correo || "";
-  document.getElementById("municipio").value = cat.municipio || "";
-  document.getElementById("direccion").value = cat.direccion || "";
-
-  modal.show(); // Abre el modal con los datos cargados
-}
-
-// Elimina un solicitante del backend mediante confirmación del usuario
-async function eliminarSolicitante(id) {
-  if (confirm("¿Estás seguro de eliminar este solicitante?")) {
-    await service.eliminar(id); // Llama al método DELETE del servicio
-    await cargarSolicitantes(); // Recarga los datos actualizados
-  }
-}
-
-// Filtra las filas según el departamento seleccionado en el menú desplegable
-filtroDepartamento.addEventListener("change", () => {
-  const filtro = filtroDepartamento.value.toLowerCase(); // Convierte el valor del filtro a minúsculas
-  Array.from(tableBody.rows).forEach(row => {
-    const departamento = row.cells[4].innerText.toLowerCase(); // Obtiene el texto del campo departamento
-    row.style.display = filtro === "" || departamento === filtro ? "" : "none"; // Muestra u oculta según coincidencia
-  });
 });
 
-// Filtra las filas de la tabla en tiempo real a medida que el usuario escribe en la barra de búsqueda
-searchInput.addEventListener("input", () => {
-  const term = searchInput.value.toLowerCase(); // Texto a buscar en minúsculas
-  Array.from(tableBody.rows).forEach(row => {
-    row.style.display = row.innerText.toLowerCase().includes(term) ? "" : "none"; // Si el texto coincide, se muestra
-  });
-});
+overlay.addEventListener("click", cerrarFormulario);
+
+function mostrarDetalles(s) {
+  document.getElementById("nombreInfo").textContent = s.nombre || "N/A";
+  document.getElementById("unidadInfo").textContent = s.unidad_depto || "N/A";
+  document.getElementById("cargoInfo").textContent = s.cargo || "N/A";
+  document.getElementById("departamentoInfo").textContent = s.departamento || "N/A";
+  document.getElementById("telefonoInfo").textContent = s.telefono || "N/A";
+  document.getElementById("correoInfo").textContent = s.correo || "N/A";
+  document.getElementById("municipioInfo").textContent = s.municipio || "N/A";
+  document.getElementById("direccionInfo").textContent = s.direccion || "N/A";
+  document.getElementById("regionInfo").textContent = s.region || "N/A";
+  document.getElementById("ubicadoInfo").textContent = s.ubicado_en || "N/A";
+
+  document.getElementById("infoModal").style.display = "block";
+  overlay.style.display = "block";
+  document.body.classList.add("blurred");
+}
+
+window.cerrarModal = function () {
+  document.getElementById("infoModal").style.display = "none";
+  overlay.style.display = "none";
+  document.body.classList.remove("blurred");
+};

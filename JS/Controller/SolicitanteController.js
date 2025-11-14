@@ -26,6 +26,26 @@ const service = new SolicitanteService(API_URL);
 let listaSolicitantes = [];
 
 /* ============================================================
+   SWEET ALERT MINI
+============================================================ */
+const miniAlert = Swal.mixin({
+  width: 350,
+  padding: "1em",
+  showConfirmButton: false,
+  timer: 1700,
+  timerProgressBar: true
+});
+
+/* ============================================================
+   REGEX TELÉFONO EL SALVADOR
+   Acepta:
+   0000-0000
+   00000000
+   Inicia en 2, 6 o 7
+============================================================ */
+const regexTelefono = /^[267]\d{3}-?\d{4}$/;
+
+/* ============================================================
    REGIÓN → DEPARTAMENTOS
 ============================================================ */
 const departamentosPorRegion = {
@@ -36,7 +56,7 @@ const departamentosPorRegion = {
 };
 
 /* ============================================================
-   MUNICIPIOS NUEVOS (SIN DISTRITOS)
+   MUNICIPIOS
 ============================================================ */
 const municipiosPorDepartamento = {
   "Ahuachapán": ["Ahuachapán Norte","Ahuachapán Centro","Ahuachapán Sur"],
@@ -56,7 +76,7 @@ const municipiosPorDepartamento = {
 };
 
 /* ============================================================
-   CARGAR DEPARTAMENTOS SEGÚN REGIÓN
+   CARGAR DEPARTAMENTOS
 ============================================================ */
 regionAdd.addEventListener("change", () => {
   const region = regionAdd.value;
@@ -75,7 +95,7 @@ regionAdd.addEventListener("change", () => {
 });
 
 /* ============================================================
-   CARGAR MUNICIPIOS SEGÚN DEPARTAMENTO
+   CARGAR MUNICIPIOS
 ============================================================ */
 export function cargarMunicipios() {
   const departamento = departamentoAdd.value;
@@ -201,7 +221,6 @@ function abrirEditar(s) {
 
   regionAdd.value = s.region;
 
-  // cargar departamentos según región
   regionAdd.dispatchEvent(new Event("change"));
 
   departamentoAdd.value = s.departamento;
@@ -232,8 +251,11 @@ function cerrarFormulario() {
 addForm.addEventListener("submit", async e => {
   e.preventDefault();
 
-  if (!/^[267][0-9]{7}$/.test(telefonoAdd.value)) {
-    Swal.fire("Error", "Número telefónico inválido (El Salvador)", "error");
+  if (!regexTelefono.test(telefonoAdd.value)) {
+    miniAlert.fire({
+      icon: "error",
+      text: "Teléfono inválido (0000-0000)"
+    });
     return;
   }
 
@@ -253,17 +275,17 @@ addForm.addEventListener("submit", async e => {
   try {
     if (addForm.dataset.editando === "true") {
       await service.actualizar(addForm.dataset.id, dto);
-      Swal.fire("Actualizado", "Registro modificado correctamente", "success");
+      miniAlert.fire({ icon: "success", text: "Actualizado" });
     } else {
       await service.crear(dto);
-      Swal.fire("Guardado", "Nuevo solicitante agregado", "success");
+      miniAlert.fire({ icon: "success", text: "Guardado" });
     }
 
     cerrarFormulario();
     cargarSolicitantes();
 
   } catch {
-    Swal.fire("Error", "No se pudo guardar la información", "error");
+    miniAlert.fire({ icon: "error", text: "Error al guardar" });
   }
 });
 
@@ -283,7 +305,7 @@ async function eliminarSolicitante(id) {
   if (conf.isConfirmed) {
     await service.eliminar(id);
     cargarSolicitantes();
-    Swal.fire("Eliminado", "Registro eliminado correctamente", "success");
+    miniAlert.fire({ icon: "success", text: "Eliminado" });
   }
 }
 

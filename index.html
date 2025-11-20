@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,6 +15,30 @@
 
   <!-- Estilos -->
   <link rel="stylesheet" href="css/inicio.css">
+
+  <style>
+    .chart-box {
+      width: 100%;
+      height: 350px;
+      padding: 10px;
+      background: white;
+      border-radius: 8px;
+      flex: 1;
+      box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .charts {
+      display: flex;
+      gap: 20px;
+      width: 100%;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 
 <body>
@@ -40,57 +65,58 @@
     <div class="cards">
       <div class="card-info blue">
         <i class="fa-solid fa-box"></i>
-        <div><h4>300</h4><p>Insumos</p></div>
+        <div><h4>0</h4><p>Insumos</p></div>
       </div>
 
       <div class="card-info green">
         <i class="fa-solid fa-check-circle"></i>
-        <div><h4>1.028</h4><p>Entregas</p></div>
+        <div><h4>0</h4><p>Entregas</p></div>
       </div>
 
       <div class="card-info orange">
         <i class="fa-solid fa-hourglass-half"></i>
-        <div><h4>42</h4><p>Pendientes</p></div>
+        <div><h4>0</h4><p>Pendientes</p></div>
       </div>
 
       <div class="card-info red">
         <i class="fa-solid fa-user"></i>
-        <div><h4>60</h4><p>Solicitantes</p></div>
+        <div><h4>0</h4><p>Solicitantes</p></div>
       </div>
     </div>
 
+    <!-- GRÁFICAS -->
     <div class="charts">
+
+      <!-- BARRAS -->
       <div class="chart-box">
         <h5>Insumos Entregados/Mes</h5>
         <canvas id="barChart"></canvas>
       </div>
 
+      <!-- PIE -->
       <div class="chart-box">
         <h5>Distribución de Insumos</h5>
         <canvas id="pieChart"></canvas>
       </div>
+
     </div>
   </div>
 
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Saludo dinámico -->
   <script>
-    // ===== Saludo dinámico según la hora =====
     const saludoEl = document.getElementById("saludo");
     const hora = new Date().getHours();
-
-    let saludo = "";
-    if (hora >= 5 && hora < 12) {
-      saludo = "Buenos días";
-    } else if (hora >= 12 && hora < 18) {
-      saludo = "Buenas tardes";
-    } else {
-      saludo = "Buenas noches";
-    }
-
-    saludoEl.textContent = saludo;
+    saludoEl.textContent =
+      hora >= 5 && hora < 12 ? "Buenos días" :
+      hora >= 12 && hora < 18 ? "Buenas tardes" :
+                                "Buenas noches";
   </script>
 
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- JS principal -->
   <script src="js/inicio.js"></script>
+
 </body>
 </html>

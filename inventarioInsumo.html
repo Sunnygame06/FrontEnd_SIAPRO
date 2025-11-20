@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario de Insumos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="CSS/inventarioInsumo.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>SIAPRO</h2>
+        <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i> Inicio</a>
+        <a href="Solicitantes.html" class="nav-item"><i class="fa-solid fa-user"></i> Solicitantes</a>
+                <a href="inventarioInsumo.html" class="nav-item active"><i class="fa-solid fa-clipboard-list"></i> Insumos</a>
+
+        <a href="Inventario.html" class="nav-item"><i class="fa-solid fa-box"></i> Inventario</a>
+        <a href="Exportacion.html" class="nav-item"><i class="fa-solid fa-download"></i> Exportación</a>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="main-content">
+
+        <h1 class="text-center mb-4 fw-bold">Inventario de Insumos</h1>
+
+        <!-- NUEVO: Contenedor de búsqueda + botón agregar -->
+        <div class="d-flex align-items-center gap-3 mb-4">
+
+            <div class="table-actions">
+                <button class="add-btn" id="addBtn">
+                    <i class="fa-solid fa-plus"></i> Agregar Insumo
+                </button>
+
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Buscar...">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+
+                <select id="filtroTipo" class="filtro-select">
+                    <option value="">Todos</option>
+                    <option value="tinta">Tinta</option>
+                    <option value="mouse">Mouse</option>
+                    <option value="teclado">Teclado</option>
+                    <option value="cabezal">Cabezal de Impresion</option>
+                    <option value="mantenimiento">Caja de Mantenimiento</option>
+                    <option value="espuma">Espuma Limpiadora</option>
+                </select>
+            </div>
+
+
+        </div>
+        <!-- CONTENEDOR DE TARJETAS -->
+        <div class="cards-container">
+
+            <div class="info-card">
+                <h3>Tinta</h3>
+                <p>Descripción o dato relevante.</p>
+            </div>
+
+            <div class="info-card">
+                <h3>Mouse</h3>
+                <p>Descripción o dato relevante.</p>
+            </div>
+
+            <div class="info-card">
+                <h3>Teclado</h3>
+                <p>Descripción o dato relevante.</p>
+            </div>
+
+            <div class="info-card">
+                <h3>Cabezal de Impresion</h3>
+                <p>Descripción o dato relevante.</p>
+            </div>
+
+            <div class="info-card">
+                <h3>Caja de Mantenimiento</h3>
+                <p>Descripción o dato relevante.</p>
+            </div>
+
+            <div class="info-card">
+                <h3>Espuma Limpiadora</h3>
+                <p>Descripción o dato relevante.</p>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        document.getElementById("searchInput").addEventListener("keyup", function () {
+            const searchText = this.value.toLowerCase();
+            const cards = document.querySelectorAll(".info-card");
+
+            let visibleCards = 0;
+
+            cards.forEach(card => {
+                const title = card.querySelector("h3").textContent.toLowerCase();
+
+                if (title.includes(searchText)) {
+                    card.style.display = "block";
+                    visibleCards++;
+                } else {
+                    card.style.display = "none";
+                }
+            });
+
+            // Centramos las tarjetas en base a las que quedaron visibles
+            const container = document.querySelector(".cards-container");
+
+            if (visibleCards === 1) {
+                container.style.gridTemplateColumns = "1fr";
+            }
+            else if (visibleCards === 2) {
+                container.style.gridTemplateColumns = "repeat(2, 1fr)";
+            }
+            else if (visibleCards >= 3) {
+                container.style.gridTemplateColumns = "repeat(3, 1fr)";
+            }
+            else {
+                // Cuando no hay coincidencias
+                container.style.gridTemplateColumns = "1fr";
+            }
+        });
+    </script>
+
+    <script>
+        // FILTRO DEL SELECT
+        document.getElementById("filtroTipo").addEventListener("change", function () {
+            const filterValue = this.value.toLowerCase();
+            const cards = document.querySelectorAll(".info-card");
+
+            let visibleCards = 0;
+
+            cards.forEach(card => {
+                const title = card.querySelector("h3").textContent.toLowerCase();
+
+                // Mostrar todas si el filtro está vacío
+                if (filterValue === "" || title.includes(filterValue)) {
+                    card.style.display = "block";
+                    visibleCards++;
+                } else {
+                    card.style.display = "none";
+                }
+            });
+
+            // Reajustar el grid según la cantidad visible
+            const container = document.querySelector(".cards-container");
+
+            if (visibleCards === 1) {
+                container.style.gridTemplateColumns = "1fr";
+            }
+            else if (visibleCards === 2) {
+                container.style.gridTemplateColumns = "repeat(2, 1fr)";
+            }
+            else if (visibleCards >= 3) {
+                container.style.gridTemplateColumns = "repeat(3, 1fr)";
+            }
+            else {
+                container.style.gridTemplateColumns = "1fr";
+            }
+        });
+    </script>
+
+</body>
+
+</html>

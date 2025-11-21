@@ -102,6 +102,33 @@ body {
     background: #c56e40;
 }
 
+.form-siapro {
+  display:flex;
+  flex-direction:column;
+  gap:15px;
+}
+
+.form-group-siapro label {
+  font-weight:500;
+  color:#1E4F91;
+}
+
+.form-group-siapro input,
+.form-group-siapro select {
+  width:100%;
+  padding:10px;
+  border:1px solid #bfc7d1;
+  border-radius:8px;
+  outline:none;
+  transition:0.2s;
+  background:#F5F7FA;
+}
+
+.form-group-siapro input:focus,
+.form-group-siapro select:focus {
+  border-color:#2457A6;
+}
+
 /* Barra de búsqueda ocupa todo el espacio sobrante */
 .search-container {
   position: relative;

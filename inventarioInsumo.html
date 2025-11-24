@@ -1,350 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario de Insumos</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="CSS/inventarioInsumo.css">
-<style>
-    /* Fondo difuminado */
-#overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.45);
-    backdrop-filter: blur(5px);
-    z-index: 1000;
-    display: none;
-}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Inventario de Insumos</title>
 
-/* Modal */
-#addModal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 450px;
-    background: #ffffff;
-    border-radius: 16px;
-    padding: 30px 28px;
-    box-shadow: 0 6px 25px rgba(0,0,0,0.25);
-    z-index: 1001;
-    display: none;
-    animation: fadeInModal .25s ease-out;
-}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-/* Animación */
-@keyframes fadeInModal {
-    from { opacity: 0; transform: translate(-50%, -46%); }
-    to { opacity: 1; transform: translate(-50%, -50%); }
-}
-
-/* Título del modal */
-#addModal h3 {
-    text-align: center;
-    font-weight: 700;
-    color: #1A3D6F;
-    margin-bottom: 18px;
-}
-
-/* Botón cerrar */
-.close-modal {
-    position: absolute;
-    top: 12px;
-    right: 16px;
-    font-size: 22px;
-    cursor: pointer;
-    font-weight: bold;
-    color: #1A3D6F;
-    transition: 0.2s;
-}
-
-.close-modal:hover {
-    color: #a0461b;
-}
-
-/* Inputs estilo SIAPRO */
-#addModal input[type="text"],
-#addModal input[type="number"],
-#addModal input[type="date"],
-#addModal select {
-    width: 100%;
-    padding: 11px 12px;
-    margin-top: 4px;
-    margin-bottom: 12px;
-    border: 1px solid #cfcfcf;
-    border-radius: 10px;
-    background: #fafafa;
-    transition: .20s ease;
-    font-size: 0.95rem;
-}
-
-#addModal input:focus,
-#addModal select:focus {
-    border-color: #1A3D6F;
-    box-shadow: 0 0 6px rgba(160, 70, 27, .3);
-}
-
-/* Labels */
-#addModal label {
-    font-weight: 600;
-    font-size: 0.95rem;
-    color: #1A3D6F;
-}
-
-/* Botón guardar */
-#addModal button {
-    width: 100%;
-    background: #1A3D6F;
-    border: none;
-    padding: 12px;
-    border-radius: 10px;
-    color: white;
-    font-weight: 600;
-    font-size: 1rem;
-    margin-top: 5px;
-    transition: 0.2s;
-}
-
-#addModal button:hover {
-    background: #1A3D6F;
-}
-
-</style>
-
-
+  <link rel="stylesheet" href="./CSS/inventarioInsumo.css">
 </head>
-
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <h2>SIAPRO</h2>
-        <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i> Inicio</a>
-        <a href="Solicitantes.html" class="nav-item"><i class="fa-solid fa-user"></i> Solicitantes</a>
-                <a href="inventarioInsumo.html" class="nav-item active"><i class="fa-solid fa-clipboard-list"></i> Insumos</a>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>SIAPRO</h2>
+    <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i> Inicio</a>
+    <a href="Solicitantes.html" class="nav-item"><i class="fa-solid fa-user"></i> Solicitantes</a>
+    <a href="inventarioInsumo.html" class="nav-item active"><i class="fa-solid fa-clipboard-list"></i> Insumos</a>
+    <a href="Inventario.html" class="nav-item"><i class="fa-solid fa-box"></i> Inventario</a>
+    <a href="Exportacion.html" class="nav-item"><i class="fa-solid fa-download"></i> Exportación</a>
+  </div>
 
-        <a href="Inventario.html" class="nav-item"><i class="fa-solid fa-box"></i> Inventario</a>
-        <a href="Exportacion.html" class="nav-item"><i class="fa-solid fa-download"></i> Exportación</a>
+  <!-- Main -->
+  <div class="main-content">
+    <div id="overlay" class="overlay"></div>
+
+    <!-- Modal Add -->
+    <div id="addModal" class="modal-card" aria-hidden="true">
+      <span class="close-modal" id="closeAddForm" title="Cerrar">&times;</span>
+      <h3>Agregar / Editar Insumo</h3>
+
+      <form id="formInsumos" class="form-siapro">
+        <input type="hidden" id="insumo_id" />
+
+        <div class="form-group-siapro">
+          <label for="nombre_insumo">Nombre del Insumo</label>
+          <input type="text" class="form-control" id="nombre_insumo" required />
+        </div>
+
+        <div class="form-group-siapro">
+          <label for="proyecto_insumo">Proyecto</label>
+          <input type="number" class="form-control" id="proyecto_insumo" required />
+        </div>
+
+        <div class="form-group-siapro">
+          <label for="fecha_insumo">Fecha</label>
+          <input type="date" class="form-control" id="fecha_insumo" required />
+        </div>
+
+        <div class="form-group-siapro">
+          <label for="marca_insumo">Marca</label>
+          <input type="text" class="form-control" id="marca_insumo" required />
+        </div>
+
+        <div class="form-group-siapro">
+          <label for="unidadMedida_insumo">Unidad de Medida</label>
+          <input type="text" class="form-control" id="unidadMedida_insumo" required />
+        </div>
+
+        <div class="form-group-siapro">
+          <label for="cantidad_insumo">Cantidad</label>
+          <input type="number" class="form-control" id="cantidad_insumo" required />
+        </div>
+
+        <div class="form-group-siapro">
+          <label for="presentacion_insumo">Presentación</label>
+          <input type="text" class="form-control" id="presentacion_insumo" />
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-siapro">Guardar</button>
+      </form>
     </div>
 
-    <!-- Contenido principal -->
-    <div class="main-content">
-<div id="overlay"></div>
+    <h1 class="text-center mb-4 fw-bold">Inventario de Insumos</h1>
 
-<div id="addModal">
-    <span class="close-modal" id="closeAddForm">&times;</span>
+    <div class="table-actions">
+      <div class="left-actions">
+        <button class="add-btn" id="addBtn"><i class="fa-solid fa-plus"></i> Agregar Insumo</button>
+      </div>
 
-    <h3>Agregar Insumo</h3>
-
-    <form id="formInsumos">
-        <div class="mb-2">
-            <label>Nombre del Insumo</label>
-            <input type="text" class="form-control" id="nombre_insumo" required>
+      <div class="search-and-filters">
+        <div class="search-container">
+          <input type="text" id="searchInput" placeholder="Buscar por nombre..." />
+          <i class="fa-solid fa-magnifying-glass"></i>
         </div>
 
-        <div class="mb-2">
-            <label>Proyecto</label>
-            <input type="number" class="form-control" id="proyecto_insumo" required>
-        </div>
-        <div>
-            <label>Fecha</label>
-            <input type="date" class="form-control" id="fecha_insumo" required>
-        </div>
-        <div>
-            <label>Marca</label>
-            <input type="text" class="form-control" id="marca_inusmo" required>
-        </div>
-        <div>
-            <label>Unidad de Medida</label>
-            <input type="text" class="form-control" id="unidadMedida_insumo" required>
-        </div>
-        <div>
-            <label>Cantidad</label>
-            <input type="number" class="form-control" id="cantidad_insumo" required>
-        </div>
-        <div>
-            <label>Presentacion</label>
-            <input type="text" class="form-control" id="presentacion_insumo" required>
-        </div>
-
-        <button type="submit" class="btn btn-success mt-3">Guardar</button>
-    </form>
-</div>
-
-
-
-
-        <h1 class="text-center mb-4 fw-bold">Inventario de Insumos</h1>
-
-        <!-- NUEVO: Contenedor de búsqueda + botón agregar -->
-        <div class="d-flex align-items-center gap-3 mb-4">
-
-            <div class="table-actions">
-                <button class="add-btn" id="addBtn">
-                    <i class="fa-solid fa-plus"></i> Agregar Insumo
-                </button>
-
-                <div class="search-container">
-                    <input type="text" id="searchInput" placeholder="Buscar...">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                </div>
-
-                <select id="filtroTipo" class="filtro-select">
-                    <option value="">Todos</option>
-                    <option value="tinta">Tinta</option>
-                    <option value="mouse">Mouse</option>
-                    <option value="teclado">Teclado</option>
-                    <option value="cabezal">Cabezal de Impresion</option>
-                    <option value="mantenimiento">Caja de Mantenimiento</option>
-                    <option value="espuma">Espuma Limpiadora</option>
-                </select>
-            </div>
-
-        </div>
-        <!-- CONTENEDOR DE TARJETAS -->
-        <div class="cards-container">
-
-            <div class="info-card">
-                <h3>Tinta</h3>
-                <p>Descripción o dato relevante.</p>
-            </div>
-
-            <div class="info-card">
-                <h3>Mouse</h3>
-                <p>Descripción o dato relevante.</p>
-            </div>
-
-            <div class="info-card">
-                <h3>Teclado</h3>
-                <p>Descripción o dato relevante.</p>
-            </div>
-
-            <div class="info-card">
-                <h3>Cabezal de Impresion</h3>
-                <p>Descripción o dato relevante.</p>
-            </div>
-
-            <div class="info-card">
-                <h3>Caja de Mantenimiento</h3>
-                <p>Descripción o dato relevante.</p>
-            </div>
-
-            <div class="info-card">
-                <h3>Espuma Limpiadora</h3>
-                <p>Descripción o dato relevante.</p>
-            </div>
-
-        </div>
-
+        <select id="marcaFilter" class="filtro-select">
+          <option value="">Todas las marcas</option>
+        </select>
+      </div>
     </div>
 
-    <script>
-        document.getElementById("searchInput").addEventListener("keyup", function () {
-            const searchText = this.value.toLowerCase();
-            const cards = document.querySelectorAll(".info-card");
+    <div class="cards-container" id="cardsContainer">
+      <!-- tarjetas generadas por JS -->
+    </div>
 
-            let visibleCards = 0;
+    <div id="noResults" class="mt-5 text-center text-muted" style="display:none;">
+      No hay insumos para mostrar.
+    </div>
+  </div>
 
-            cards.forEach(card => {
-                const title = card.querySelector("h3").textContent.toLowerCase();
-
-                if (title.includes(searchText)) {
-                    card.style.display = "block";
-                    visibleCards++;
-                } else {
-                    card.style.display = "none";
-                }
-            });
-
-            // Centramos las tarjetas en base a las que quedaron visibles
-            const container = document.querySelector(".cards-container");
-
-            if (visibleCards === 1) {
-                container.style.gridTemplateColumns = "1fr";
-            }
-            else if (visibleCards === 2) {
-                container.style.gridTemplateColumns = "repeat(2, 1fr)";
-            }
-            else if (visibleCards >= 3) {
-                container.style.gridTemplateColumns = "repeat(3, 1fr)";
-            }
-            else {
-                // Cuando no hay coincidencias
-                container.style.gridTemplateColumns = "1fr";
-            }
-        });
-    </script>
-
-    <script>
-        // FILTRO DEL SELECT
-        document.getElementById("filtroTipo").addEventListener("change", function () {
-            const filterValue = this.value.toLowerCase();
-            const cards = document.querySelectorAll(".info-card");
-
-            let visibleCards = 0;
-
-            cards.forEach(card => {
-                const title = card.querySelector("h3").textContent.toLowerCase();
-
-                // Mostrar todas si el filtro está vacío
-                if (filterValue === "" || title.includes(filterValue)) {
-                    card.style.display = "block";
-                    visibleCards++;
-                } else {
-                    card.style.display = "none";
-                }
-            });
-
-            // Reajustar el grid según la cantidad visible
-            const container = document.querySelector(".cards-container");
-
-            if (visibleCards === 1) {
-                container.style.gridTemplateColumns = "1fr";
-            }
-            else if (visibleCards === 2) {
-                container.style.gridTemplateColumns = "repeat(2, 1fr)";
-            }
-            else if (visibleCards >= 3) {
-                container.style.gridTemplateColumns = "repeat(3, 1fr)";
-            }
-            else {
-                container.style.gridTemplateColumns = "1fr";
-            }
-        });
-    </script>
-<script>
-    const addBtn = document.getElementById("addBtn");
-    const modal = document.getElementById("addModal");
-    const overlay = document.getElementById("overlay");
-    const closeBtn = document.getElementById("closeAddForm");
-
-    // Abrir modal
-    addBtn.addEventListener("click", () => {
-        modal.style.display = "block";
-        overlay.style.display = "block";
-    });
-
-    // Cerrar con X
-    closeBtn.addEventListener("click", () => {
-        modal.style.display = "none";
-        overlay.style.display = "none";
-    });
-
-    // Cerrar haciendo clic fuera
-    overlay.addEventListener("click", () => {
-        modal.style.display = "none";
-        overlay.style.display = "none";
-    });
-</script>
-
-
+  <!-- Module scripts -->
+  <script type="module" src="./JS/Services/InventarioInsumoService.js"></script>
+  <script type="module" src="./JS/Controller/InventarioInsumoController.js"></script>
 </body>
-
 </html>

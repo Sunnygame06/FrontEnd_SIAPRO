@@ -4,36 +4,45 @@ import { InventarioInsumoService } from "../Services/InventarioInsumoService.js"
 const $ = (sel) => document.querySelector(sel);
 
 document.addEventListener("DOMContentLoaded", () => {
+
   const addBtn = $("#addBtn");
   const modal = $("#addModal");
   const overlay = $("#overlay");
   const closeBtn = $("#closeAddForm");
   const form = $("#formInsumos");
+  const titleModal = $("#addModal h3");
+
   const searchInput = $("#searchInput");
   const marcaFilter = $("#marcaFilter");
   const cardsContainer = $("#cardsContainer");
   const noResults = $("#noResults");
 
+  let currentList = [];
   let currentPage = 0;
   let pageSize = 12;
-  let currentList = []; // contenido para filtrar en cliente
   let editingId = null;
 
+  /* ==============================
+      MODAL
+  ===============================*/
   function openModal() {
     modal.style.display = "block";
     overlay.style.display = "block";
     modal.setAttribute("aria-hidden", "false");
   }
+
   function closeModal() {
     modal.style.display = "none";
     overlay.style.display = "none";
     modal.setAttribute("aria-hidden", "true");
     form.reset();
     editingId = null;
+    titleModal.textContent = "Agregar Insumo";
   }
 
   addBtn.addEventListener("click", () => {
     editingId = null;
+    titleModal.textContent = "Agregar Insumo";
     form.reset();
     openModal();
   });
@@ -41,46 +50,55 @@ document.addEventListener("DOMContentLoaded", () => {
   closeBtn.addEventListener("click", closeModal);
   overlay.addEventListener("click", closeModal);
 
+  /* ==============================
+      LISTAR INSUMOS
+  ===============================*/
   async function cargarInsumos() {
     try {
       const page = await InventarioInsumoService.listar("", currentPage, pageSize);
-      // backend devuelve Page<InventarioDTO> o similar; algunos controladores devuelven objeto con content
       const content = page?.content ?? page;
+
       if (!content || content.length === 0) {
         currentList = [];
         renderCards([]);
         return;
       }
+
       currentList = content.map(x => normalizeItem(x));
       populateMarcaFilter(currentList);
       applyFiltersAndRender();
+
     } catch (err) {
       console.error(err);
-      Swal.fire("Error", err.message || "No se pudieron cargar insumos", "error");
+      Swal.fire("Error", "No se pudieron cargar los insumos", "error");
     }
   }
 
   function normalizeItem(i) {
-    // backend structure might be { data: { ... } } for getById; for list assume objects with fields
     const item = (i?.data) ? i.data : i;
     return {
       id: item.id,
       nombre: item.nombre,
       proyecto: item.proyecto,
       fecha: item.fecha,
-      marca: item.marca ?? item.barcaa ?? "",
-      unidad_medida: item.unidad_medida ?? item.unidadMedian ?? "",
+      marca: item.marca ?? "",
+      unidad_medida: item.unidad_medida ?? "",
       cantidad: item.cantidad,
       presentacion: item.presentacion ?? ""
     };
   }
 
+  /* ==============================
+      TARJETAS
+  ===============================*/
   function renderCards(list) {
     cardsContainer.innerHTML = "";
+
     if (!list || list.length === 0) {
       noResults.style.display = "block";
       return;
     }
+
     noResults.style.display = "none";
 
     list.forEach(insumo => {
@@ -98,27 +116,25 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
 
         <div class="actions mt-3">
-          <div class="left">
-            <button class="btn btn-primary btn-sm btn-sm-icon btn-edit" data-id="${insumo.id}" title="Editar">
-              <i class="fa-solid fa-pen"></i>
-            </button>
-          </div>
-          <div class="right">
-            <button class="btn btn-danger btn-sm btn-sm-icon btn-delete" data-id="${insumo.id}" title="Eliminar">
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          </div>
+          <button class="btn btn-primary btn-sm btn-edit" data-id="${insumo.id}" title="Editar">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+
+          <button class="btn btn-danger btn-sm btn-delete" data-id="${insumo.id}" title="Eliminar">
+            <i class="fa-solid fa-trash"></i>
+          </button>
         </div>
       `;
+
       cardsContainer.appendChild(card);
     });
 
-    // attach actions
+    // EDITAR
     cardsContainer.querySelectorAll(".btn-edit").forEach(btn => {
-      btn.addEventListener("click", async (e) => {
+      btn.addEventListener("click", async () => {
         const id = btn.getAttribute("data-id");
+        titleModal.textContent = "Editar Insumo";
         try {
-          // buscar en la lista local primero
           const found = currentList.find(x => String(x.id) === String(id));
           if (found) {
             fillForm(found);
@@ -126,12 +142,13 @@ document.addEventListener("DOMContentLoaded", () => {
             openModal();
             return;
           }
-          // si no está en local pedir al backend
+
           const resp = await InventarioInsumoService.obtenerPorId(id);
           const normalized = normalizeItem(resp?.data ?? resp);
           fillForm(normalized);
           editingId = id;
           openModal();
+
         } catch (err) {
           console.error(err);
           Swal.fire("Error", "No se pudo cargar el insumo", "error");
@@ -139,9 +156,11 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
+    // ELIMINAR
     cardsContainer.querySelectorAll(".btn-delete").forEach(btn => {
-      btn.addEventListener("click", (e) => {
+      btn.addEventListener("click", async () => {
         const id = btn.getAttribute("data-id");
+
         Swal.fire({
           title: "¿Eliminar?",
           text: "Esta acción no se puede deshacer",
@@ -149,15 +168,15 @@ document.addEventListener("DOMContentLoaded", () => {
           showCancelButton: true,
           confirmButtonText: "Sí, eliminar",
           cancelButtonText: "Cancelar"
-        }).then(async (res) => {
+        }).then(async res => {
           if (res.isConfirmed) {
             try {
               await InventarioInsumoService.eliminar(id);
               await cargarInsumos();
               Swal.fire("Eliminado", "Insumo eliminado correctamente", "success");
             } catch (err) {
+              Swal.fire("Error", "No se pudo eliminar", "error");
               console.error(err);
-              Swal.fire("Error", err.message || "No se pudo eliminar", "error");
             }
           }
         });
@@ -166,15 +185,18 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function fillForm(item) {
-    $("#nombre_insumo").value = item.nombre ?? "";
-    $("#proyecto_insumo").value = item.proyecto ?? "";
-    $("#fecha_insumo").value = (item.fecha ? item.fecha : "");
-    $("#marca_insumo").value = item.marca ?? "";
-    $("#unidadMedida_insumo").value = item.unidad_medida ?? "";
-    $("#cantidad_insumo").value = item.cantidad ?? "";
-    $("#presentacion_insumo").value = item.presentacion ?? "";
+    $("#nombre_insumo").value = item.nombre;
+    $("#proyecto_insumo").value = item.proyecto;
+    $("#fecha_insumo").value = item.fecha;
+    $("#marca_insumo").value = item.marca;
+    $("#unidadMedida_insumo").value = item.unidad_medida;
+    $("#cantidad_insumo").value = item.cantidad;
+    $("#presentacion_insumo").value = item.presentacion;
   }
 
+  /* ==============================
+      VALIDACIONES Y SUBMIT
+  ===============================*/
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -189,52 +211,51 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     try {
-      if (!payload.nombre) throw new Error("Nombre es requerido");
-      if (!payload.proyecto) throw new Error("Proyecto es requerido");
+      if (!payload.nombre) throw new Error("El nombre es obligatorio");
+      if (!payload.proyecto || payload.proyecto <= 0) throw new Error("Proyecto inválido");
+      if (!payload.fecha) throw new Error("La fecha es obligatoria");
+      if (!payload.cantidad || payload.cantidad <= 0) throw new Error("La cantidad debe ser mayor a 0");
 
-      if (editingId == null) {
+      if (editingId === null) {
         await InventarioInsumoService.guardar(payload);
         Swal.fire("Guardado", "Insumo guardado correctamente", "success");
       } else {
         await InventarioInsumoService.actualizar(editingId, payload);
         Swal.fire("Actualizado", "Insumo actualizado correctamente", "success");
       }
+
       closeModal();
       await cargarInsumos();
+
     } catch (err) {
-      console.error(err);
-      Swal.fire("Error", err.message || "Error al guardar", "error");
+      Swal.fire("Error", err.message, "error");
     }
   });
 
-  // SEARCH + BRAND FILTER
+  /* ==============================
+      FILTROS
+  ===============================*/
   searchInput.addEventListener("input", () => {
-    // aplicamos debounce simple
     clearTimeout(searchInput._deb);
-    searchInput._deb = setTimeout(applyFiltersAndRender, 220);
+    searchInput._deb = setTimeout(applyFiltersAndRender, 200);
   });
 
   marcaFilter.addEventListener("change", applyFiltersAndRender);
 
   function applyFiltersAndRender() {
-    const q = (searchInput.value || "").trim().toLowerCase();
-    const marca = (marcaFilter.value || "").trim().toLowerCase();
+    const q = searchInput.value.toLowerCase();
+    const marca = marcaFilter.value.toLowerCase();
 
     let list = currentList.slice();
 
-    if (q) {
-      list = list.filter(i => (i.nombre || "").toLowerCase().includes(q));
-    }
-    if (marca) {
-      list = list.filter(i => (i.marca || "").toLowerCase() === marca);
-    }
+    if (q) list = list.filter(i => (i.nombre || "").toLowerCase().includes(q));
+    if (marca) list = list.filter(i => (i.marca || "").toLowerCase() === marca);
 
     renderCards(list);
   }
 
   function populateMarcaFilter(list) {
     const marcas = [...new Set(list.map(i => (i.marca || "").trim()).filter(Boolean))].sort();
-    // limpiar opciones excepto la primera
     marcaFilter.innerHTML = `<option value="">Todas las marcas</option>`;
     marcas.forEach(m => {
       const opt = document.createElement("option");
@@ -244,11 +265,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // small util
   function escapeHtml(str = "") {
-    return String(str).replace(/[&<>"']/g, (s) => ({ '&': '&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+    return String(str).replace(/[&<>"']/g, (s) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[s]));
   }
 
-  // inicial
+  // Cargar insumos al iniciar
   cargarInsumos();
 });

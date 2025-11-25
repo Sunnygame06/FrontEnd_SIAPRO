@@ -27,10 +27,12 @@
   <div class="main-content">
     <div id="overlay" class="overlay"></div>
 
-    <!-- Modal Add -->
+    <!-- Modal Add/Edit -->
     <div id="addModal" class="modal-card" aria-hidden="true">
       <span class="close-modal" id="closeAddForm" title="Cerrar">&times;</span>
-      <h3>Agregar / Editar Insumo</h3>
+
+      <!-- CAMBIO IMPORTANTE AQUÍ -->
+      <h3 id="modalTitle">Agregar Insumo</h3>
 
       <form id="formInsumos" class="form-siapro">
         <input type="hidden" id="insumo_id" />
@@ -93,17 +95,14 @@
       </div>
     </div>
 
-    <div class="cards-container" id="cardsContainer">
-      <!-- tarjetas generadas por JS -->
-    </div>
+    <div class="cards-container" id="cardsContainer"></div>
 
     <div id="noResults" class="mt-5 text-center text-muted" style="display:none;">
       No hay insumos para mostrar.
     </div>
   </div>
 
-  <!-- Module scripts -->
-  <script type="module" src="./JS/Services/InventarioInsumoService.js"></script>
+  <!-- Scripts -->
   <script type="module" src="./JS/Controller/InventarioInsumoController.js"></script>
 </body>
 </html>

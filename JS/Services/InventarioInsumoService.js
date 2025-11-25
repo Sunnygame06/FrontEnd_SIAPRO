@@ -2,16 +2,23 @@
 const BASE = "http://localhost:8080/apiInventario";
 
 export const InventarioInsumoService = {
+
   listar: async (search = "", page = 0, size = 12) => {
-    // Endpoint del backend: /apiInventario/getAllInventarios?page=..&size=..
     const url = `${BASE}/getAllInventarios?page=${page}&size=${size}`;
-    // backend permite paginado; hay que pasar search por query si lo manejas backend (si no, lo filtramos cliente)
     const resp = await fetch(url);
+
     if (!resp.ok) {
       const txt = await resp.text().catch(() => resp.statusText);
       throw new Error(txt || "Error al obtener insumos");
     }
-    return await resp.json(); // Page<InventarioDTO> (con content, totalElements, ...)
+
+    const data = await resp.json();
+
+    // NORMALIZAR PARA QUE SIEMPRE SEA ARRAY
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data.content)) return { content: data.content, ...data };
+
+    return { content: [], ...data };
   },
 
   obtenerPorId: async (id) => {
@@ -24,7 +31,6 @@ export const InventarioInsumoService = {
   },
 
   guardar: async (data) => {
-    // Ajustar payload a DTO: nombre, proyecto, fecha, marca, unidad_medida, cantidad, presentacion
     const payload = {
       nombre: data.nombre,
       proyecto: Number(data.proyecto),
@@ -76,11 +82,12 @@ export const InventarioInsumoService = {
     const resp = await fetch(`${BASE}/deleteInventario/${id}`, {
       method: "DELETE"
     });
+
     if (!resp.ok) {
       const txt = await resp.text().catch(() => resp.statusText);
       throw new Error(txt || "Error al eliminar insumo");
     }
-    // backend devuelve OK con cuerpo o vacío; devolvemos true
+
     return true;
   }
 };

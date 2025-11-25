@@ -92,4 +92,3 @@ async updateEquipo(id, equipo) {
 }
 
 }
-

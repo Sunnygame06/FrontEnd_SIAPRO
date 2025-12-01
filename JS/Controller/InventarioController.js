@@ -1,11 +1,16 @@
+// ======================================================
+//  InventarioController.js COMPLETO + FUNCIONAL
+// ======================================================
+
 import { EquipoService } from "../Services/InventarioService.js";
-import { InventarioInsumoService } from "../Services/InventarioInsumoService.js"; // se usa directamente, no "new"
+import { InventarioInsumoService } from "../Services/InventarioInsumoService.js";
 
 const service = new EquipoService();
+
+// DOM
 const tbody = document.getElementById("tbody-inventario");
 const modal = new bootstrap.Modal(document.getElementById("verModal"));
 
-// Detalles modal
 const detalleMarca = document.getElementById("detalleMarca");
 const detalleModelo = document.getElementById("detalleModelo");
 const detalleSerie = document.getElementById("detalleSerie");
@@ -19,7 +24,6 @@ const detallePresentacion = document.getElementById("detallePresentacion");
 const detalleEstado = document.getElementById("detalleEstado");
 const detalleOrigen = document.getElementById("detalleOrigen");
 
-// Inputs formulario
 const btnGuardar = document.querySelector(".btn-guardar");
 const marcaAdd = document.getElementById("marcaAdd");
 const marcaInsumoAdd = document.getElementById("marcaInsumoAdd");
@@ -34,67 +38,188 @@ const cantidadAdd = document.getElementById("cantidadAdd");
 const estadoAdd = document.getElementById("estadoAdd");
 const origenAdd = document.getElementById("origenAdd");
 
-// Estados locales
+const pageSizeSelect = document.getElementById("pageSize");
+const prevPageBtn = document.getElementById("prevPage");
+const nextPageBtn = document.getElementById("nextPage");
+const pageInfo = document.getElementById("pageInfo");
+
 let idEditando = null;
 
-// Inicializar
+// paginación
+let currentPage = 0;
+let pageSize = Number(pageSizeSelect?.value || 10);
+let totalPages = 0;
+
+// ======================================================
+// Init
+// ======================================================
 document.addEventListener("DOMContentLoaded", () => {
+    pageSizeSelect?.addEventListener("change", (e) => {
+        pageSize = Number(e.target.value);
+        currentPage = 0;
+        cargarInventario();
+    });
+
+    prevPageBtn?.addEventListener("click", () => {
+        if (currentPage > 0) {
+            currentPage--;
+            cargarInventario();
+        }
+    });
+
+    nextPageBtn?.addEventListener("click", () => {
+        if (currentPage < totalPages - 1) {
+            currentPage++;
+            cargarInventario();
+        }
+    });
+
     cargarInventario();
     cargarSolicitantes();
     cargarMarcas();
-    estadoAdd.innerHTML = `<option value="pendiente" selected>Pendiente</option><option value="entregado">Entregado</option>`;
+
+    estadoAdd.innerHTML = `
+        <option value="pendiente" selected>Pendiente</option>
+        <option value="entregado">Entregado</option>
+    `;
+
     origenAdd.value = "UNIDAD DE TECNOLOGIAS DE LA INFORMACION Y COMUNICACIONES";
 });
 
+// ======================================================
 // Cargar inventario
+// ======================================================
 async function cargarInventario() {
-    const equipos = await service.getAllEquipos();
-    tbody.innerHTML = "";
-    if (!equipos || equipos.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center">No hay registros</td></tr>`;
-        return;
+    tbody.innerHTML = `<tr><td colspan="8" class="text-center">Cargando...</td></tr>`;
+    try {
+        const pageObj = await service.getAllEquipos(currentPage, pageSize);
+        const contenido = pageObj?.content || [];
+        totalPages = pageObj?.totalPages ?? 0;
+
+        if (!contenido.length) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center">No hay registros</td></tr>`;
+            pageInfo.textContent = `Página ${currentPage + 1} de ${Math.max(1, totalPages)}`;
+            actualizarBotonesPaginacion();
+            return;
+        }
+
+        tbody.innerHTML = "";
+        const idInicio = currentPage * pageSize + 1;
+        contenido.forEach((item, idx) => crearFila(item, idInicio + idx));
+
+        pageInfo.textContent = `Página ${currentPage + 1} de ${Math.max(1, totalPages)} — Registros: ${contenido.length}`;
+        actualizarBotonesPaginacion();
+
+    } catch (err) {
+        console.error("Error al obtener inventarios", err);
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error al cargar</td></tr>`;
     }
-    equipos.forEach(item => crearFila(item));
 }
 
+function actualizarBotonesPaginacion() {
+    prevPageBtn.disabled = currentPage <= 0;
+    nextPageBtn.disabled = currentPage >= totalPages - 1;
+}
+
+// ======================================================
 // Crear fila
-function crearFila(item) {
+// ======================================================
+function crearFila(item, idVirtual) {
     const tr = document.createElement("tr");
     const estadoGuardado = item.estado || "pendiente";
+
+    tr.classList.toggle("estado-entregado", estadoGuardado === "entregado");
+    tr.classList.toggle("estado-pendiente", estadoGuardado !== "entregado");
+
     tr.innerHTML = `
-        <td>${item.id}</td>
-        <td>${item.marca}</td>
-        <td>${item.modelo}</td>
-        <td>${item.serie}</td>
-        <td>${item.inventario}</td>
+        <td class="text-center id-virtual">${idVirtual}</td>
+        <td>${item.marca || ""}</td>
+        <td>${item.modelo || ""}</td>
+        <td>${item.serie || ""}</td>
+        <td>${item.inventario || ""}</td>
         <td>${item.nombre_solicitante || "Sin asignar"}</td>
         <td>${item.instalado_en || "Sin ubicación"}</td>
         <td>
-            <i class="fa-solid fa-pen-to-square text-primary me-2 btn-editar" data-id="${item.id}"></i>
-            <i class="fa-solid fa-trash text-danger me-2 btn-eliminar" data-id="${item.id}"></i>
-            <i class="fa-solid fa-eye text-secondary me-2 ver-detalle" data-json='${JSON.stringify(item)}'></i>
-            <select class="estado-select form-select form-select-sm" style="width:auto;" data-id="${item.id}">
+            <i class="fa-solid fa-pen-to-square text-primary me-2 btn-editar" data-id="${item.id}" style="cursor:pointer;"></i>
+            <i class="fa-solid fa-trash text-danger me-2 btn-eliminar" data-id="${item.id}" style="cursor:pointer;"></i>
+            <i class="fa-solid fa-eye text-secondary me-2 ver-detalle" style="cursor:pointer;"></i>
+
+            <select class="estado-select form-select form-select-sm" style="width:auto; display:inline-block; margin-left:8px;" data-id="${item.id}">
                 <option value="pendiente" ${estadoGuardado === "pendiente" ? "selected" : ""}>Pendiente</option>
                 <option value="entregado" ${estadoGuardado === "entregado" ? "selected" : ""}>Entregado</option>
             </select>
         </td>
     `;
+
     tbody.appendChild(tr);
-    aplicarColorFila(tr, estadoGuardado);
 
     tr.querySelector(".ver-detalle").addEventListener("click", () => abrirModalDetalle(item));
     tr.querySelector(".btn-editar").addEventListener("click", () => cargarFormularioEdicion(item));
     tr.querySelector(".btn-eliminar").addEventListener("click", () => eliminarEquipo(item.id, tr));
 
-    tr.querySelector(".estado-select").addEventListener("change", async (e) => {
-        const nuevoEstado = e.target.value;
-        item.estado = nuevoEstado;
-        await service.updateEquipo(item.id, item); // actualizar estado
-        aplicarColorFila(tr, nuevoEstado);
+    const estadoSelect = tr.querySelector(".estado-select");
+    estadoSelect.dataset.prev = estadoGuardado;
+
+    estadoSelect.addEventListener("change", async (ev) => {
+        const nuevo = ev.target.value;
+        const previo = ev.target.dataset.prev;
+        if (nuevo === previo) return;
+
+        const backupValue = previo;
+
+        try {
+            await actualizarStockSeguro(item, previo, nuevo);
+            await service.updateEquipo(item.id, { ...item, estado: nuevo });
+
+            tr.classList.toggle("estado-entregado", nuevo === "entregado");
+            tr.classList.toggle("estado-pendiente", nuevo !== "entregado");
+
+            ev.target.dataset.prev = nuevo;
+            Swal.fire("Éxito", "Estado actualizado", "success");
+
+        } catch (err) {
+            console.error(err);
+            Swal.fire("Error", "No se pudo actualizar el estado", "error");
+            ev.target.value = backupValue;
+        }
     });
 }
 
+// ======================================================
+// Manejo SEGURO del stock
+// ======================================================
+async function actualizarStockSeguro(item, previo, nuevo) {
+    try {
+        const insumos = await InventarioInsumoService.listar("", 0, 2000);
+        const lista = Array.isArray(insumos) ? insumos : insumos.content || [];
+
+        const encontrado = lista.find(i =>
+            i.nombre === item.insumo &&
+            i.marca === item.marca &&
+            i.descripcion === item.descripcion
+        );
+
+        if (!encontrado) return;
+
+        let nuevaCantidad = encontrado.cantidad;
+
+        if (previo !== "entregado" && nuevo === "entregado") {
+            nuevaCantidad -= (item.cantidad || 1);
+        }
+        if (previo === "entregado" && nuevo !== "entregado") {
+            nuevaCantidad += (item.cantidad || 1);
+        }
+
+        await InventarioInsumoService.actualizarCantidad(encontrado.id, Math.max(0, nuevaCantidad));
+
+    } catch (err) {
+        console.error("Error manejando stock:", err);
+    }
+}
+
+// ======================================================
 // Modal detalle
+// ======================================================
 function abrirModalDetalle(item) {
     detalleMarca.textContent = item.marca || "N/A";
     detalleModelo.textContent = item.modelo || "N/A";
@@ -107,145 +232,184 @@ function abrirModalDetalle(item) {
     detalleDescripcion.textContent = item.descripcion || "N/A";
     detallePresentacion.textContent = item.presentacion_ml || "N/A";
     detalleEstado.textContent = item.estado || "Pendiente";
-    detalleOrigen.textContent = item.origen || "UNIDAD DE TECNOLOGIAS DE LA INFORMACION Y COMUNICACIONES";
+    detalleOrigen.textContent = item.origen || "";
+
     modal.show();
 }
 
-// Colorear fila por estado
-function aplicarColorFila(fila, estado) {
-    fila.classList.remove("estado-pendiente", "estado-entregado");
-    if (estado === "entregado") {
-        fila.classList.add("estado-entregado");
-        fila.style.backgroundColor = "#d4edda";
-    } else {
-        fila.classList.add("estado-pendiente");
-        fila.style.backgroundColor = "#fff3cd";
-    }
-}
-
-// Filtro por estado
+// ======================================================
+// Filtro estado
+// ======================================================
 document.getElementById("filtro-estado").addEventListener("change", (e) => {
-    const filas = tbody.querySelectorAll("tr");
-    filas.forEach(fila => {
-        const estadoFila = fila.querySelector(".estado-select").value;
-        fila.style.display = e.target.value === "todos" || e.target.value === estadoFila ? "" : "none";
+    const valor = e.target.value;
+    tbody.querySelectorAll("tr").forEach(fila => {
+        const estado = fila.querySelector(".estado-select")?.value;
+        fila.style.display = valor === "todos" || valor === estado ? "" : "none";
     });
 });
 
-// Cargar solicitantes
+// ======================================================
+// cargar solicitantes
+// ======================================================
 async function cargarSolicitantes() {
-    const res = await fetch("http://localhost:8080/apiSolicitante/getAllSolicitantes?page=0&size=50");
-    const data = await res.json();
-    asignadoAdd.innerHTML = `<option value="">Seleccione solicitante</option>`;
-    (data.content || []).forEach(s => asignadoAdd.innerHTML += `<option value="${s.id}">${s.nombre}</option>`);
+    try {
+        const res = await fetch("http://localhost:8080/apiSolicitante/getAllSolicitantes?page=0&size=200");
+        const data = await res.json();
+        asignadoAdd.innerHTML = `<option value="">Seleccione solicitante</option>`;
+        (data.content || []).forEach(s => asignadoAdd.innerHTML += `<option value="${s.id}">${s.nombre}</option>`);
+    } catch {
+        asignadoAdd.innerHTML = `<option value="">No hay solicitantes</option>`;
+    }
 }
 
-// Cargar marcas
+// ======================================================
+// cargar marcas / insumos
+// ======================================================
 async function cargarMarcas() {
-    const respuesta = await InventarioInsumoService.listar("", 0, 50); // usar directamente
-    const insumos = Array.isArray(respuesta) ? respuesta : respuesta?.data || respuesta?.content || [];
-    const marcas = [...new Set(insumos.map(i => i.marca).filter(Boolean))].sort();
-    marcaAdd.innerHTML = `<option value="">Seleccione marca</option>`;
-    marcaInsumoAdd.innerHTML = `<option value="">Seleccione marca</option>`;
-    marcas.forEach(m => {
-        marcaAdd.innerHTML += `<option value="${m}">${m}</option>`;
-        marcaInsumoAdd.innerHTML += `<option value="${m}">${m}</option>`;
-    });
+    try {
+        const respuesta = await InventarioInsumoService.listar("", 0, 2000);
+        const insumos = Array.isArray(respuesta) ? respuesta : respuesta.content || [];
+
+        const marcas = [...new Set(insumos.map(i => i.marca).filter(Boolean))];
+
+        marcaAdd.innerHTML = `<option value="">Seleccione marca</option>`;
+        marcaInsumoAdd.innerHTML = `<option value="">Seleccione marca</option>`;
+        marcas.forEach(m => {
+            marcaAdd.innerHTML += `<option value="${m}">${m}</option>`;
+            marcaInsumoAdd.innerHTML += `<option value="${m}">${m}</option>`;
+        });
+    } catch (err) {
+        console.error("Error cargar marcas:", err);
+    }
 }
 
-// Filtrar insumos al cambiar marca
+// ======================================================
+// filtrar insumos por marca
+// ======================================================
 marcaAdd.addEventListener("change", async () => {
     const marca = marcaAdd.value;
     marcaInsumoAdd.value = marca;
     insumoAdd.innerHTML = `<option value="">Seleccione insumo</option>`;
+
     if (!marca) return;
-    const respuesta = await InventarioInsumoService.listar(marca, 0, 50);
-    const insumos = Array.isArray(respuesta) ? respuesta : respuesta?.data || respuesta?.content || [];
-    const nombresInsumos = [...new Set(insumos.map(i => i.nombre).filter(Boolean))].sort();
-    nombresInsumos.forEach(ins => {
-        insumoAdd.innerHTML += `<option value="${ins}">${ins}</option>`;
-    });
+
+    try {
+        const respuesta = await InventarioInsumoService.listar("", 0, 2000);
+        const insumos = Array.isArray(respuesta) ? respuesta : respuesta.content || [];
+        const filtrados = insumos.filter(i => i.marca === marca);
+        const nombres = [...new Set(filtrados.map(i => i.nombre))];
+        nombres.forEach(n => insumoAdd.innerHTML += `<option value="${n}">${n}</option>`);
+    } catch (err) {
+        console.error("Error filtrando insumos", err);
+    }
 });
 
-// Guardar registro
+// ======================================================
+// guardar / actualizar
+// ======================================================
 btnGuardar.addEventListener("click", async () => {
     if (!marcaAdd.value || !modeloAdd.value || !inventarioAdd.value || !insumoAdd.value) {
-        Swal.fire("Error", "Complete todos los campos obligatorios", "error");
-        return;
+        return Swal.fire("Error", "Complete los campos obligatorios", "error");
     }
-
-    const cantidadSolicitada = parseInt(cantidadAdd.value || 0);
-    const insumosDisponibles = await InventarioInsumoService.listar(insumoAdd.value, 0, 50);
-    const stockActual = insumosDisponibles[0]?.cantidad || 0;
-
-    if (cantidadSolicitada > stockActual) {
-        Swal.fire("Error", `No hay suficiente stock. Disponible: ${stockActual}`, "error");
-        return;
-    }
-
-    const nuevaCantidad = stockActual - cantidadSolicitada;
-    await InventarioInsumoService.actualizarCantidad(insumosDisponibles[0].id, nuevaCantidad);
 
     const equipoData = {
         marca: marcaAdd.value,
         modelo: modeloAdd.value,
         serie: serieAdd.value,
         inventario: inventarioAdd.value,
-        nombre_solicitante: asignadoAdd.options[asignadoAdd.selectedIndex].text,
+        solicitante_id: asignadoAdd.value || null,
+        nombre_solicitante: asignadoAdd.options[asignadoAdd.selectedIndex]?.text || "",
         instalado_en: instaladoAdd.value,
         insumo: insumoAdd.value,
         descripcion: descripcionAdd.value,
-        cantidad: cantidadSolicitada,
-        estado: estadoAdd.value || "pendiente",
-        origen: origenAdd.value || "UNIDAD DE TECNOLOGIAS DE LA INFORMACION Y COMUNICACIONES"
+        cantidad: Number(cantidadAdd.value || 1),
+        estado: estadoAdd.value,
+        origen: origenAdd.value
     };
 
-    if (idEditando) {
-        await service.updateEquipo(idEditando, equipoData);
-        idEditando = null;
-    } else {
-        await service.crearEquipo(equipoData);
-    }
+    try {
+        if (idEditando) {
+            await service.updateEquipo(idEditando, equipoData);
+            Swal.fire("Éxito", "Registro actualizado", "success");
+        } else {
+            await service.crearEquipo(equipoData);
+            Swal.fire("Éxito", "Registro guardado", "success");
+        }
 
-    Swal.fire("Éxito", "Registro guardado correctamente", "success");
-    cargarInventario();
-    limpiarFormulario();
+        limpiarFormulario();
+        cargarInventario();
+        idEditando = null;
+
+    } catch (err) {
+        console.error(err);
+        Swal.fire("Error", "No se pudo guardar", "error");
+    }
 });
 
-// Editar
-function cargarFormularioEdicion(item) {
+// ======================================================
+// editar
+// ======================================================
+async function cargarFormularioEdicion(item) {
     idEditando = item.id;
-    marcaAdd.value = item.marca;
-    marcaInsumoAdd.value = item.marca;
-    modeloAdd.value = item.modelo;
-    serieAdd.value = item.serie;
-    inventarioAdd.value = item.inventario;
-    asignadoAdd.value = item.nombre_solicitante;
-    instaladoAdd.value = item.instalado_en;
-    insumoAdd.innerHTML = `<option value="${item.insumo}" selected>${item.insumo}</option>`;
-    descripcionAdd.value = item.descripcion;
-    cantidadAdd.value = item.cantidad;
-    estadoAdd.value = item.estado;
-    origenAdd.value = item.origen;
+
+    marcaAdd.value = item.marca || "";
+
+    // Recargar insumos según marca y luego seleccionar el correcto
+    await recargarInsumosPorMarca(item.marca, item.insumo);
+
+    modeloAdd.value = item.modelo || "";
+    serieAdd.value = item.serie || "";
+    inventarioAdd.value = item.inventario || "";
+    instaladoAdd.value = item.instalado_en || "";
+    descripcionAdd.value = item.descripcion || "";
+    cantidadAdd.value = item.cantidad || 1;
+    estadoAdd.value = item.estado || "pendiente";
+    origenAdd.value = item.origen || "";
+    asignadoAdd.value = item.solicitante_id || "";
 }
 
-// Eliminar
-async function eliminarEquipo(id, fila) {
-    const result = await Swal.fire({
-        title: "¿Desea eliminar este registro?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Sí, eliminar",
-        cancelButtonText: "Cancelar"
-    });
-    if (result.isConfirmed) {
-        await service.deleteEquipo(id);
-        fila.remove();
-        Swal.fire("Eliminado", "Registro eliminado correctamente", "success");
+// ======================================================
+// recargar insumos por marca (editar)
+// ======================================================
+async function recargarInsumosPorMarca(marca, insumoSeleccionado) {
+    marcaInsumoAdd.value = marca;
+    insumoAdd.innerHTML = `<option value="">Cargando...</option>`;
+
+    try {
+        const respuesta = await InventarioInsumoService.listar("", 0, 2000);
+        const insumos = Array.isArray(respuesta) ? respuesta : respuesta.content || [];
+        const filtrados = insumos.filter(i => i.marca === marca);
+        const nombres = [...new Set(filtrados.map(i => i.nombre))];
+        insumoAdd.innerHTML = `<option value="">Seleccione insumo</option>`;
+        nombres.forEach(n => {
+            insumoAdd.innerHTML += `<option value="${n}" ${n === insumoSeleccionado ? "selected" : ""}>${n}</option>`;
+        });
+    } catch (err) {
+        console.error("Error recargando insumos para edición", err);
+        insumoAdd.innerHTML = `<option value="">Seleccione insumo</option>`;
     }
 }
 
-// Limpiar formulario
+// ======================================================
+// eliminar
+// ======================================================
+async function eliminarEquipo(id, fila) {
+    const r = await Swal.fire({ title: "¿Eliminar?", showCancelButton: true });
+    if (!r.isConfirmed) return;
+
+    try {
+        await service.deleteEquipo(id);
+        fila.remove();
+        cargarInventario();
+        Swal.fire("Eliminado", "Registro eliminado", "success");
+    } catch {
+        Swal.fire("Error", "No se pudo eliminar", "error");
+    }
+}
+
+// ======================================================
+// limpiar form
+// ======================================================
 function limpiarFormulario() {
     marcaAdd.value = "";
     marcaInsumoAdd.value = "";
@@ -259,4 +423,5 @@ function limpiarFormulario() {
     cantidadAdd.value = 1;
     estadoAdd.value = "pendiente";
     origenAdd.value = "UNIDAD DE TECNOLOGIAS DE LA INFORMACION Y COMUNICACIONES";
+    idEditando = null;
 }

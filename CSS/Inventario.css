@@ -374,3 +374,73 @@ thead th {
   color: #fff !important; 
 }
 
+/* ===== PAGINACIÓN ===== */
+
+.pagination-container {
+  margin-top: 20px;
+  padding: 15px 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.page-size-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.page-size-box select {
+  width: 80px;
+  border-radius: 8px;
+  background: #ececec;
+  border: none;
+  padding: 6px 10px;
+  font-size: 14px;
+  box-shadow: inset 1px 1px 3px rgba(0,0,0,.1);
+}
+
+.pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pagination-buttons button {
+  padding: 6px 15px;
+  border-radius: 8px;
+  border: none;
+  background: #1e4f91;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.pagination-buttons button:hover {
+  background: #163b6b;
+}
+
+.page-info {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* ===== RESPONSIVE PAGINATION ===== */
+@media (max-width: 576px) {
+  .pagination-container {
+    flex-direction: column;
+    text-align: center;
+  }
+  .pagination-buttons {
+    width: 100%;
+    justify-content: center;
+  }
+}

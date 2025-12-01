@@ -8,7 +8,7 @@ const COLORS = [
 ];
 
 // ===============================
-// LOCALSTORAGE
+// LOCALSTORAGE – ESTADOS Y FECHAS
 // ===============================
 function getEstadosGuardados() {
   try {
@@ -20,16 +20,26 @@ function getEstadosGuardados() {
 
 function getEstadoObj(id) {
   const raw = getEstadosGuardados()[id];
+
   if (!raw) return { estado: "pendiente", fecha: null };
-  if (typeof raw === "string") return { estado: raw.toLowerCase(), fecha: null };
-  if (typeof raw === "object") return { estado: (raw.estado||"pendiente").toLowerCase(), fecha: raw.fecha||null };
-  return { estado: "pendiente", fecha: null };
+  if (typeof raw === "string")
+    return { estado: raw.toLowerCase(), fecha: null };
+
+  return {
+    estado: (raw.estado || "pendiente").toLowerCase(),
+    fecha: raw.fecha || null
+  };
 }
 
 function setEstadoLocalWithDate(id, estado) {
   const estados = getEstadosGuardados();
-  estados[id] = { estado, fecha: new Date().toISOString() };
+  estados[id] = {
+    estado,
+    fecha: new Date().toISOString()
+  };
+
   localStorage.setItem("estadosEquipos", JSON.stringify(estados));
+
   window.dispatchEvent(new Event("estadoCambiado"));
 }
 
@@ -40,22 +50,30 @@ async function getEquipos() {
   try {
     const resp = await fetch(`${API_BASE}/apiEquipo/getAllEquipos`);
     if (!resp.ok) return [];
+
     const json = await resp.json();
     if (Array.isArray(json)) return json;
     if (json.content && Array.isArray(json.content)) return json.content;
+
     return [];
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 async function getSolicitantes() {
   try {
     const resp = await fetch(`${API_BASE}/apiSolicitante/getAllSolicitantes`);
     if (!resp.ok) return [];
+
     const json = await resp.json();
     if (Array.isArray(json)) return json;
     if (json.content && Array.isArray(json.content)) return json.content;
+
     return [];
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 // ===============================
@@ -63,52 +81,75 @@ async function getSolicitantes() {
 // ===============================
 function contarEstados(equipos) {
   let entregados = 0, pendientes = 0;
+
   equipos.forEach(eq => {
     const id = eq.id || eq.id_equipo;
     const { estado } = getEstadoObj(id);
+
     if (estado === "entregado") entregados++;
     else pendientes++;
   });
+
   return { entregados, pendientes };
 }
 
 function actualizarTarjetasDashboard(equipos, solicitantes) {
   document.querySelector(".card-info.blue h4").textContent = equipos.length;
   document.querySelector(".card-info.red h4").textContent = solicitantes.length;
+
   const { entregados, pendientes } = contarEstados(equipos);
+
   document.querySelector(".card-info.green h4").textContent = entregados;
   document.querySelector(".card-info.orange h4").textContent = pendientes;
 }
 
 // ===============================
-// PIE – TIPOS DE INSUMO
+// PIE – TIPO / INSUMO
 // ===============================
 function crearGraficaTipos(equipos) {
   const stats = {};
+
   equipos.forEach(eq => {
     let tipo = eq.insumo || eq.tipo || "Otro";
-    if (typeof tipo === "object" && tipo !== null) tipo = tipo.nombre || tipo.tipo || tipo.descripcion || "Otro";
-    tipo = tipo.toString().trim();
+
+    if (typeof tipo === "object" && tipo !== null) {
+      tipo = tipo.nombre || tipo.descripcion || "Otro";
+    }
+
+    tipo = String(tipo).trim() || "Otro";
+
     if (!stats[tipo]) stats[tipo] = 0;
     stats[tipo]++;
   });
 
   const labels = Object.keys(stats);
   const data = Object.values(stats);
+
   const canvas = document.getElementById("pieChart");
   if (!canvas) return;
+
   const old = Chart.getChart(canvas);
   if (old) old.destroy();
 
   new Chart(canvas.getContext("2d"), {
     type: "pie",
-    data: { labels, datasets: [{ data, backgroundColor: COLORS.slice(0, labels.length) }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } }
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: COLORS.slice(0, labels.length)
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: "bottom" } }
+    }
   });
 }
 
 // ===============================
-// BAR – ENTREGADOS POR MES
+// BAR – ENTREGADOS POR MES REAL
 // ===============================
 function crearGraficaMensual(equipos) {
   const meses = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
@@ -118,10 +159,12 @@ function crearGraficaMensual(equipos) {
     const id = eq.id || eq.id_equipo;
     const { estado, fecha } = getEstadoObj(id);
 
-    // Si no hay fecha, asumimos que entregado hoy para prueba
-    if (estado === "entregado") {
-      const d = fecha ? new Date(fecha) : new Date();
-      if (!isNaN(d)) dataMes[d.getMonth()]++;
+    if (estado === "entregado" && fecha) {
+      const d = new Date(fecha);
+      if (!isNaN(d)) {
+        const mes = d.getMonth();
+        dataMes[mes]++;
+      }
     }
   });
 
@@ -150,11 +193,12 @@ function crearGraficaMensual(equipos) {
 }
 
 // ===============================
-// INIT DASHBOARD
+// INIT
 // ===============================
 async function initDashboard() {
   const equipos = await getEquipos();
   const solicitantes = await getSolicitantes();
+
   actualizarTarjetasDashboard(equipos, solicitantes);
   crearGraficaTipos(equipos);
   crearGraficaMensual(equipos);
@@ -163,5 +207,4 @@ async function initDashboard() {
 document.addEventListener("DOMContentLoaded", initDashboard);
 window.addEventListener("estadoCambiado", initDashboard);
 
-// Exponer funciones globales
 window.__SIAPRO = { setEstadoLocalWithDate, getEstadoObj, initDashboard };

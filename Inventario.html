@@ -30,16 +30,11 @@
       <div class="form-section">
         <h5>Datos del equipo en que se utilizará</h5>
 
-        <!-- ✔ MARCA DINÁMICA DESDE INSUMOS -->
         <div class="form-group">
           <label>Marca</label>
-          <select id="marcaAdd" class="form-select">
-            <option value="">Seleccione una marca</option>
-            <!-- SE LLENA DESDE inventarioInsumo (NO HAY DATOS FIJOS) -->
-          </select>
+          <select id="marcaAdd" class="form-select"></select>
         </div>
 
-        <!-- Modelo es input -->
         <div class="form-group">
           <label>Modelo</label>
           <input id="modeloAdd" type="text" class="form-control">
@@ -74,13 +69,9 @@
           <select id="insumoAdd" class="form-select"></select>
         </div>
 
-        <!-- ✔ Marca del insumo TAMBIÉN DINÁMICA desde inventarioInsumo -->
         <div class="form-group">
           <label>Marca (Insumo)</label>
-          <select id="marcaInsumoAdd" class="form-select">
-            <option value="">Seleccione marca</option>
-            <!-- SE LLENA DESDE inventarioInsumo -->
-          </select>
+          <select id="marcaInsumoAdd" class="form-select"></select>
         </div>
 
         <div class="form-group">
@@ -112,6 +103,10 @@
         <button class="btn-guardar">Guardar Registro</button>
       </div>
     </div>
+
+    <!-- ============================= -->
+    <!--    TABLA + FILTROS + PAGINACIÓN -->
+    <!-- ============================= -->
 
     <div class="table-container mt-4">
       <div class="table-actions">
@@ -146,9 +141,32 @@
       </thead>
       <tbody id="tbody-inventario"></tbody>
     </table>
+
+    <!-- 🟦 PAGINACIÓN -->
+    <div class="pagination-container">
+      
+      <div class="page-size-box">
+        <label>Mostrar:</label>
+        <select id="pageSize" class="form-select">
+          <option value="5">5</option>
+          <option value="10" selected>10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+        </select>
+        <span>por página</span>
+      </div>
+
+      <div class="pagination-buttons">
+        <button id="prevPage" class="btn btn-secondary">Anterior</button>
+        <span id="pageInfo" class="page-info">Página 1</span>
+        <button id="nextPage" class="btn btn-secondary">Siguiente</button>
+      </div>
+
+    </div>
+
   </div>
 
-  <!-- MODAL -->
+  <!-- MODAL DETALLES -->
   <div class="modal fade" id="verModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
       <div class="modal-content info-modal">

@@ -1,30 +1,58 @@
-// JS/Services/InventarioService.js
 export class EquipoService {
+
     constructor() {
         this.BASE_URL = "http://localhost:8080/apiEquipo";
     }
 
     // ======================================================
-    // 🔵 GET — Obtener todos los equipos (PAGINADO) — devuelve objeto Page<T>
+    // GET — Obtener todos los equipos (paginado)
     // ======================================================
     async getAllEquipos(page = 0, size = 10) {
         try {
             const response = await fetch(`${this.BASE_URL}/getAllEquipos?page=${page}&size=${size}`);
+
             if (!response.ok) {
-                console.error("Error al obtener equipos:", response.status);
-                return { content: [], totalPages: 0, totalElements: 0 };
+                return { content: [], totalPages: 0, totalElements: 0, size, page };
             }
+
             const data = await response.json();
-            // Devolvemos el objeto completo para que el controller pueda leer totalPages, totalElements, content...
-            return data;
+
+            return {
+                content: data.content ?? [],
+                totalPages: data.totalPages ?? 0,
+                totalElements: data.totalElements ?? 0,
+                size: data.size ?? size,
+                page: data.number ?? page
+            };
+
         } catch (error) {
-            console.error("Error en GET getAllEquipos:", error);
-            return { content: [], totalPages: 0, totalElements: 0 };
+            console.error("Error en getAllEquipos:", error);
+            return { content: [], totalPages: 0, totalElements: 0, size, page };
         }
     }
 
     // ======================================================
-    // 🔵 POST — Crear nuevo equipo
+    // GET — Obtener un equipo por ID
+    // ======================================================
+    async getEquipoById(id) {
+        try {
+            const response = await fetch(`${this.BASE_URL}/getEquipoById/${id}`);
+
+            if (!response.ok) {
+                return { status: "Error", message: "Equipo no encontrado" };
+            }
+
+            const data = await response.json();
+            return data?.data ?? { status: "Error", message: "Sin datos" };
+
+        } catch (error) {
+            console.error("Error en getEquipoById:", error);
+            return { status: "Error", message: "Error inesperado" };
+        }
+    }
+
+    // ======================================================
+    // POST — Crear equipo
     // ======================================================
     async crearEquipo(equipo) {
         try {
@@ -33,46 +61,71 @@ export class EquipoService {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(equipo)
             });
-            const data = await response.json();
-            return data;
+
+            const data = await response.json().catch(() => null);
+
+            if (!response.ok) {
+                return data ?? { status: "Error", message: "No se pudo crear el equipo" };
+            }
+
+            return data ?? { status: "Completado" };
+
         } catch (error) {
-            console.error("Error en POST crearEquipo:", error);
+            console.error("Error en crearEquipo:", error);
             return { status: "Error", message: "No se pudo crear el equipo" };
         }
     }
 
     // ======================================================
-    // 🔴 DELETE — Eliminar equipo por ID
+    // PUT — Actualizar equipo
+    // ======================================================
+async updateEquipo(id, equipo) {
+    try {
+        if (!id) return { status: "Error", message: "ID inválido" };
+
+        const response = await fetch(`${this.BASE_URL}/updateEquipo/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(equipo)
+        });
+
+        if (response.status === 404) {
+            return { status: "Error", message: "Equipo no encontrado" };
+        }
+
+        const data = await response.json().catch(() => null);
+
+        if (!response.ok) {
+            return data ?? { status: "Error", message: "No se pudo actualizar" };
+        }
+
+        return data ?? { status: "Completado" };
+
+    } catch (error) {
+        return { status: "Error", message: "Error inesperado" };
+    }
+}
+
+    // ======================================================
+    // DELETE — Eliminar equipo
     // ======================================================
     async deleteEquipo(id) {
         try {
-            const response = await fetch(`${this.BASE_URL}/deleteEquipo/${id}`, { method: "DELETE" });
-            if (!response.ok) {
-                console.error("Error en DELETE:", response.status);
-                return { status: "Error" };
-            }
-            return { status: "Completado" };
-        } catch (error) {
-            console.error("Error en DELETE deleteEquipo:", error);
-            return { status: "Error" };
-        }
-    }
-
-    // ======================================================
-    // 🔵 PUT — Actualizar equipo
-    // ======================================================
-    async updateEquipo(id, equipo) {
-        try {
-            const response = await fetch(`${this.BASE_URL}/updateEquipo/${id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(equipo)
+            const response = await fetch(`${this.BASE_URL}/deleteEquipo/${id}`, {
+                method: "DELETE"
             });
-            const data = await response.json();
-            return data;
+
+            const data = await response.json().catch(() => null);
+
+            if (!response.ok) {
+                return data ?? { status: "Error", message: "No se pudo eliminar" };
+            }
+
+            return { status: "Completado" };
+
         } catch (error) {
-            console.error("Error en PUT updateEquipo:", error);
-            return { status: "Error" };
+            console.error("Error en deleteEquipo:", error);
+            return { status: "Error", message: "Error inesperado al eliminar" };
         }
     }
 }

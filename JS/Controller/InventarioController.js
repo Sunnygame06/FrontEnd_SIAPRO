@@ -1,15 +1,15 @@
-// ======================================================
-//  InventarioController.js COMPLETO + FUNCIONAL
-// ======================================================
-
+// JS/Controllers/InventarioController.js
 import { EquipoService } from "../Services/InventarioService.js";
 import { InventarioInsumoService } from "../Services/InventarioInsumoService.js";
 
 const service = new EquipoService();
 
-// DOM
+// -------------------------
+// DOM references
+// -------------------------
 const tbody = document.getElementById("tbody-inventario");
-const modal = new bootstrap.Modal(document.getElementById("verModal"));
+const modalEl = document.getElementById("verModal");
+const modal = modalEl ? new bootstrap.Modal(modalEl) : null;
 
 const detalleMarca = document.getElementById("detalleMarca");
 const detalleModelo = document.getElementById("detalleModelo");
@@ -25,6 +25,7 @@ const detalleEstado = document.getElementById("detalleEstado");
 const detalleOrigen = document.getElementById("detalleOrigen");
 
 const btnGuardar = document.querySelector(".btn-guardar");
+
 const marcaAdd = document.getElementById("marcaAdd");
 const marcaInsumoAdd = document.getElementById("marcaInsumoAdd");
 const modeloAdd = document.getElementById("modeloAdd");
@@ -42,72 +43,75 @@ const pageSizeSelect = document.getElementById("pageSize");
 const prevPageBtn = document.getElementById("prevPage");
 const nextPageBtn = document.getElementById("nextPage");
 const pageInfo = document.getElementById("pageInfo");
+const filtroEstado = document.getElementById("filtro-estado");
 
 let idEditando = null;
-
-// paginación
 let currentPage = 0;
 let pageSize = Number(pageSizeSelect?.value || 10);
 let totalPages = 0;
 
-// ======================================================
-// Init
-// ======================================================
+// -------------------------
+// Helpers
+// -------------------------
+function safeAddListener(el, evt, fn) { if (!el) return; el.addEventListener(evt, fn); }
+function setLoadingRow(message = "Cargando...") { if (!tbody) return; tbody.innerHTML = `<tr><td colspan="8" class="text-center">${message}</td></tr>`; }
+function typeToConsole(t) { return t === "error" ? "error" : "log"; }
+function showToast(tipo = "info", title = "", text = "") {
+    if (typeof Swal !== "undefined") {
+        if (tipo === "success") Swal.fire(title || "OK", text, "success");
+        else if (tipo === "error") Swal.fire(title || "Error", text, "error");
+        else Swal.fire(title || "", text, "info");
+    } else { console[typeToConsole(tipo)](`${title} ${text}`); }
+}
+function escapeHtml(text = "") {
+    if (text === null || text === undefined) return "";
+    return String(text).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+}
+function debounce(fn, delay = 250) { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); }; }
+
+// -------------------------
+// Inicialización
+// -------------------------
 document.addEventListener("DOMContentLoaded", () => {
-    pageSizeSelect?.addEventListener("change", (e) => {
-        pageSize = Number(e.target.value);
+
+    safeAddListener(pageSizeSelect, "change", (e) => {
+        pageSize = Number(e.target.value) || 10;
         currentPage = 0;
         cargarInventario();
     });
 
-    prevPageBtn?.addEventListener("click", () => {
-        if (currentPage > 0) {
-            currentPage--;
-            cargarInventario();
-        }
-    });
-
-    nextPageBtn?.addEventListener("click", () => {
-        if (currentPage < totalPages - 1) {
-            currentPage++;
-            cargarInventario();
-        }
-    });
+    safeAddListener(prevPageBtn, "click", () => { if (currentPage > 0) { currentPage--; cargarInventario(); } });
+    safeAddListener(nextPageBtn, "click", () => { if (currentPage < totalPages - 1) { currentPage++; cargarInventario(); } });
+    safeAddListener(filtroEstado, "change", filtrarFilasPorEstado);
 
     cargarInventario();
     cargarSolicitantes();
     cargarMarcas();
 
-    estadoAdd.innerHTML = `
-        <option value="pendiente" selected>Pendiente</option>
-        <option value="entregado">Entregado</option>
-    `;
+    if (estadoAdd) estadoAdd.innerHTML = `<option value="pendiente" selected>Pendiente</option><option value="entregado">Entregado</option>`;
+    if (origenAdd) origenAdd.value = "UNIDAD DE TECNOLOGIAS DE LA INFORMACION Y COMUNICACIONES";
 
-    origenAdd.value = "UNIDAD DE TECNOLOGIAS DE LA INFORMACION Y COMUNICACIONES";
+    safeAddListener(btnGuardar, "click", async (ev) => { ev.preventDefault(); await handleGuardar(); });
+    if (tbody) { tbody.addEventListener("click", tableClickHandler); tbody.addEventListener("change", tableChangeHandler); }
+    safeAddListener(marcaAdd, "change", debounce(filtrarInsumosPorMarca, 200));
 });
 
-// ======================================================
+// -------------------------
 // Cargar inventario
-// ======================================================
+// -------------------------
 async function cargarInventario() {
-    tbody.innerHTML = `<tr><td colspan="8" class="text-center">Cargando...</td></tr>`;
     try {
+        setLoadingRow();
         const pageObj = await service.getAllEquipos(currentPage, pageSize);
-        const contenido = pageObj?.content || [];
-        totalPages = pageObj?.totalPages ?? 0;
+        const contenido = Array.isArray(pageObj.content) ? pageObj.content : [];
+        totalPages = Number(pageObj.totalPages ?? 0);
 
-        if (!contenido.length) {
-            tbody.innerHTML = `<tr><td colspan="8" class="text-center">No hay registros</td></tr>`;
-            pageInfo.textContent = `Página ${currentPage + 1} de ${Math.max(1, totalPages)}`;
-            actualizarBotonesPaginacion();
-            return;
-        }
+        if (!contenido.length) { tbody.innerHTML = `<tr><td colspan="8" class="text-center">No hay registros</td></tr>`; actualizarPaginaInfo(); actualizarBotonesPaginacion(); return; }
 
         tbody.innerHTML = "";
         const idInicio = currentPage * pageSize + 1;
         contenido.forEach((item, idx) => crearFila(item, idInicio + idx));
-
-        pageInfo.textContent = `Página ${currentPage + 1} de ${Math.max(1, totalPages)} — Registros: ${contenido.length}`;
+        actualizarPaginaInfo(contenido.length);
         actualizarBotonesPaginacion();
 
     } catch (err) {
@@ -115,35 +119,35 @@ async function cargarInventario() {
         tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error al cargar</td></tr>`;
     }
 }
+function actualizarPaginaInfo(regCount = 0) { if (!pageInfo) return; pageInfo.textContent = `Página ${currentPage + 1} de ${Math.max(1, totalPages)} — Registros en página: ${regCount}`; }
+function actualizarBotonesPaginacion() { if (prevPageBtn) prevPageBtn.disabled = currentPage <= 0; if (nextPageBtn) nextPageBtn.disabled = currentPage >= totalPages - 1; }
 
-function actualizarBotonesPaginacion() {
-    prevPageBtn.disabled = currentPage <= 0;
-    nextPageBtn.disabled = currentPage >= totalPages - 1;
-}
-
-// ======================================================
+// -------------------------
 // Crear fila
-// ======================================================
-function crearFila(item, idVirtual) {
+// -------------------------
+function crearFila(item = {}, idVirtual = "") {
+    if (!tbody) return;
     const tr = document.createElement("tr");
     const estadoGuardado = item.estado || "pendiente";
 
     tr.classList.toggle("estado-entregado", estadoGuardado === "entregado");
     tr.classList.toggle("estado-pendiente", estadoGuardado !== "entregado");
 
-    tr.innerHTML = `
-        <td class="text-center id-virtual">${idVirtual}</td>
-        <td>${item.marca || ""}</td>
-        <td>${item.modelo || ""}</td>
-        <td>${item.serie || ""}</td>
-        <td>${item.inventario || ""}</td>
-        <td>${item.nombre_solicitante || "Sin asignar"}</td>
-        <td>${item.instalado_en || "Sin ubicación"}</td>
-        <td>
-            <i class="fa-solid fa-pen-to-square text-primary me-2 btn-editar" data-id="${item.id}" style="cursor:pointer;"></i>
-            <i class="fa-solid fa-trash text-danger me-2 btn-eliminar" data-id="${item.id}" style="cursor:pointer;"></i>
-            <i class="fa-solid fa-eye text-secondary me-2 ver-detalle" style="cursor:pointer;"></i>
+    const nombreSolicitante = item.nombre_solicitante || "Sin asignar";
+    const instalado = item.instalado_en || "Sin ubicación";
 
+    tr.innerHTML = `
+        <td class="text-center id-virtual">${escapeHtml(idVirtual)}</td>
+        <td>${escapeHtml(item.marca)}</td>
+        <td>${escapeHtml(item.modelo)}</td>
+        <td>${escapeHtml(item.serie)}</td>
+        <td>${escapeHtml(item.inventario)}</td>
+        <td>${escapeHtml(nombreSolicitante)}</td>
+        <td>${escapeHtml(instalado)}</td>
+        <td>
+            <i class="fa-solid fa-pen-to-square text-primary me-2 btn-editar" data-id="${item.id}" style="cursor:pointer;" title="Editar"></i>
+            <i class="fa-solid fa-trash text-danger me-2 btn-eliminar" data-id="${item.id}" style="cursor:pointer;" title="Eliminar"></i>
+            <i class="fa-solid fa-eye text-secondary me-2 ver-detalle" data-id="${item.id}" style="cursor:pointer;" title="Ver"></i>
             <select class="estado-select form-select form-select-sm" style="width:auto; display:inline-block; margin-left:8px;" data-id="${item.id}">
                 <option value="pendiente" ${estadoGuardado === "pendiente" ? "selected" : ""}>Pendiente</option>
                 <option value="entregado" ${estadoGuardado === "entregado" ? "selected" : ""}>Entregado</option>
@@ -151,277 +155,299 @@ function crearFila(item, idVirtual) {
         </td>
     `;
 
+    try { tr.dataset.item = JSON.stringify(item); } catch (e) { }
     tbody.appendChild(tr);
-
-    tr.querySelector(".ver-detalle").addEventListener("click", () => abrirModalDetalle(item));
-    tr.querySelector(".btn-editar").addEventListener("click", () => cargarFormularioEdicion(item));
-    tr.querySelector(".btn-eliminar").addEventListener("click", () => eliminarEquipo(item.id, tr));
-
-    const estadoSelect = tr.querySelector(".estado-select");
-    estadoSelect.dataset.prev = estadoGuardado;
-
-    estadoSelect.addEventListener("change", async (ev) => {
-        const nuevo = ev.target.value;
-        const previo = ev.target.dataset.prev;
-        if (nuevo === previo) return;
-
-        const backupValue = previo;
-
-        try {
-            await actualizarStockSeguro(item, previo, nuevo);
-            await service.updateEquipo(item.id, { ...item, estado: nuevo });
-
-            tr.classList.toggle("estado-entregado", nuevo === "entregado");
-            tr.classList.toggle("estado-pendiente", nuevo !== "entregado");
-
-            ev.target.dataset.prev = nuevo;
-            Swal.fire("Éxito", "Estado actualizado", "success");
-
-        } catch (err) {
-            console.error(err);
-            Swal.fire("Error", "No se pudo actualizar el estado", "error");
-            ev.target.value = backupValue;
-        }
-    });
 }
 
-// ======================================================
-// Manejo SEGURO del stock
-// ======================================================
-async function actualizarStockSeguro(item, previo, nuevo) {
-    try {
-        const insumos = await InventarioInsumoService.listar("", 0, 2000);
-        const lista = Array.isArray(insumos) ? insumos : insumos.content || [];
+// -------------------------
+// Eventos delegados
+// -------------------------
+function tableClickHandler(ev) {
+    const el = ev.target;
+    if (!el) return;
 
-        const encontrado = lista.find(i =>
-            i.nombre === item.insumo &&
-            i.marca === item.marca &&
-            i.descripcion === item.descripcion
-        );
+    const editar = el.closest(".btn-editar");
+    if (editar) { handleEditarByRow(editar.closest("tr")); return; }
 
-        if (!encontrado) return;
+    const eliminar = el.closest(".btn-eliminar");
+    if (eliminar) { handleEliminarByRow(eliminar.closest("tr"), eliminar.dataset.id); return; }
 
-        let nuevaCantidad = encontrado.cantidad;
-
-        if (previo !== "entregado" && nuevo === "entregado") {
-            nuevaCantidad -= (item.cantidad || 1);
-        }
-        if (previo === "entregado" && nuevo !== "entregado") {
-            nuevaCantidad += (item.cantidad || 1);
-        }
-
-        await InventarioInsumoService.actualizarCantidad(encontrado.id, Math.max(0, nuevaCantidad));
-
-    } catch (err) {
-        console.error("Error manejando stock:", err);
+    const ver = el.closest(".ver-detalle");
+    if (ver) { const tr = ver.closest("tr"); const item = obtenerItemDesdeFila(tr); if (item) abrirModalDetalle(item); return; }
+}
+function tableChangeHandler(ev) {
+    const el = ev.target;
+    if (!el) return;
+    if (el.classList.contains("estado-select")) {
+        const tr = el.closest("tr");
+        const item = obtenerItemDesdeFila(tr);
+        if (!item) return;
+        handleEstadoChange(item, el);
     }
 }
 
-// ======================================================
-// Modal detalle
-// ======================================================
-function abrirModalDetalle(item) {
-    detalleMarca.textContent = item.marca || "N/A";
-    detalleModelo.textContent = item.modelo || "N/A";
-    detalleSerie.textContent = item.serie || "N/A";
-    detalleInventario.textContent = item.inventario || "N/A";
-    detalleAsignado.textContent = item.nombre_solicitante || "Sin asignar";
-    detalleInstalado.textContent = item.instalado_en || "Sin ubicación";
-    detalleInsumo.textContent = item.insumo || "N/A";
-    detalleMarcaInsumo.textContent = item.marca || "N/A";
-    detalleDescripcion.textContent = item.descripcion || "N/A";
-    detallePresentacion.textContent = item.presentacion_ml || "N/A";
-    detalleEstado.textContent = item.estado || "Pendiente";
-    detalleOrigen.textContent = item.origen || "";
+// -------------------------
+// Obtener item desde fila
+// -------------------------
+function obtenerItemDesdeFila(tr) {
+    if (!tr) return null;
+    try { if (tr.dataset?.item) return JSON.parse(tr.dataset.item); } catch {}
+    const cells = tr.querySelectorAll("td");
+    if (!cells || cells.length < 7) return null;
+    return {
+        id: tr.querySelector(".btn-editar")?.dataset.id,
+        marca: cells[1]?.textContent?.trim(),
+        modelo: cells[2]?.textContent?.trim(),
+        serie: cells[3]?.textContent?.trim(),
+        inventario: cells[4]?.textContent?.trim(),
+        nombre_solicitante: cells[5]?.textContent?.trim(),
+        instalado_en: cells[6]?.textContent?.trim(),
+        estado: tr.querySelector(".estado-select")?.value
+    };
+}
 
+// -------------------------
+// Cambiar estado y stock
+// -------------------------
+async function handleEstadoChange(item, selectEl) {
+    const nuevo = selectEl.value;
+    const previo = selectEl.dataset.prev || item.estado || "pendiente";
+    if (nuevo === previo) return;
+
+    selectEl.disabled = true;
+    try {
+        await actualizarStockSeguro(item, previo, nuevo);
+        const payload = { ...item, estado: nuevo };
+        const res = await service.updateEquipo(item.id, payload);
+        if (res?.status === "Error" || res?.error) throw new Error(res.message || "Error backend");
+        selectEl.dataset.prev = nuevo;
+        const tr = selectEl.closest("tr");
+        if (tr) { tr.classList.toggle("estado-entregado", nuevo === "entregado"); tr.classList.toggle("estado-pendiente", nuevo !== "entregado"); }
+        showToast("success", "Estado actualizado", "");
+    } catch (err) {
+        console.error("Error actualizando estado:", err);
+        showToast("error", "No se pudo actualizar el estado", err?.message || "");
+        selectEl.value = previo;
+    } finally { selectEl.disabled = false; }
+}
+async function actualizarStockSeguro(item, previo, nuevo) {
+    try {
+        const insumosResp = await InventarioInsumoService.listar("", 0, 2000);
+        const insumos = Array.isArray(insumosResp) ? insumosResp : (insumosResp?.content || []);
+        const encontrado = insumos.find(i => i.nombre === item.insumo && i.marca === item.marca && i.descripcion === item.descripcion);
+        if (!encontrado) return;
+
+        let nuevaCantidad = Number(encontrado.cantidad ?? 0);
+        const delta = Number(item.cantidad ?? 1);
+
+        if (previo !== "entregado" && nuevo === "entregado") nuevaCantidad -= delta;
+        if (previo === "entregado" && nuevo !== "entregado") nuevaCantidad += delta;
+
+        nuevaCantidad = Math.max(0, nuevaCantidad);
+        await InventarioInsumoService.actualizarCantidad(encontrado.id, nuevaCantidad);
+    } catch (err) { console.error("Error manejando stock:", err); }
+}
+
+// -------------------------
+// Modal detalle
+// -------------------------
+function abrirModalDetalle(item) {
+    if (!modal) return;
+    if (detalleMarca) detalleMarca.textContent = item.marca || "N/A";
+    if (detalleModelo) detalleModelo.textContent = item.modelo || "N/A";
+    if (detalleSerie) detalleSerie.textContent = item.serie || "N/A";
+    if (detalleInventario) detalleInventario.textContent = item.inventario || "N/A";
+    if (detalleAsignado) detalleAsignado.textContent = item.nombre_solicitante || "Sin asignar";
+    if (detalleInstalado) detalleInstalado.textContent = item.instalado_en || "Sin ubicación";
+    if (detalleInsumo) detalleInsumo.textContent = item.insumo || "N/A";
+    if (detalleMarcaInsumo) detalleMarcaInsumo.textContent = item.marca || "N/A";
+    if (detalleDescripcion) detalleDescripcion.textContent = item.descripcion || "N/A";
+    if (detallePresentacion) detallePresentacion.textContent = item.presentacion_ml ?? "N/A";
+    if (detalleEstado) detalleEstado.textContent = (item.estado || "Pendiente");
+    if (detalleOrigen) detalleOrigen.textContent = item.origen || "";
     modal.show();
 }
 
-// ======================================================
-// Filtro estado
-// ======================================================
-document.getElementById("filtro-estado").addEventListener("change", (e) => {
-    const valor = e.target.value;
-    tbody.querySelectorAll("tr").forEach(fila => {
-        const estado = fila.querySelector(".estado-select")?.value;
-        fila.style.display = valor === "todos" || valor === estado ? "" : "none";
-    });
-});
-
-// ======================================================
-// cargar solicitantes
-// ======================================================
+// -------------------------
+// Cargar solicitantes
+// -------------------------
 async function cargarSolicitantes() {
     try {
-        const res = await fetch("http://localhost:8080/apiSolicitante/getAllSolicitantes?page=0&size=200");
+        const res = await fetch("http://localhost:8080/apiSolicitante/getAllSolicitantes?page=0&size=50");
+        if (!res.ok) throw new Error("No se pudo obtener solicitantes");
         const data = await res.json();
+        const lista = data?.content || [];
+        if (!asignadoAdd) return;
         asignadoAdd.innerHTML = `<option value="">Seleccione solicitante</option>`;
-        (data.content || []).forEach(s => asignadoAdd.innerHTML += `<option value="${s.id}">${s.nombre}</option>`);
-    } catch {
-        asignadoAdd.innerHTML = `<option value="">No hay solicitantes</option>`;
-    }
+        lista.forEach(s => { const opt = document.createElement("option"); opt.value = s.id ?? ""; opt.text = s.nombre ?? "(sin nombre)"; asignadoAdd.appendChild(opt); });
+    } catch (err) { console.error("Error cargando solicitantes:", err); if (asignadoAdd) asignadoAdd.innerHTML = `<option value="">No hay solicitantes</option>`; }
 }
 
-// ======================================================
-// cargar marcas / insumos
-// ======================================================
+// -------------------------
+// Cargar marcas e insumos
+// -------------------------
 async function cargarMarcas() {
     try {
         const respuesta = await InventarioInsumoService.listar("", 0, 2000);
-        const insumos = Array.isArray(respuesta) ? respuesta : respuesta.content || [];
+        const insumos = Array.isArray(respuesta) ? respuesta : (respuesta?.content || []);
+        const marcas = [...new Set(insumos.map(i => i.marca).filter(Boolean))].sort();
 
-        const marcas = [...new Set(insumos.map(i => i.marca).filter(Boolean))];
-
-        marcaAdd.innerHTML = `<option value="">Seleccione marca</option>`;
-        marcaInsumoAdd.innerHTML = `<option value="">Seleccione marca</option>`;
-        marcas.forEach(m => {
-            marcaAdd.innerHTML += `<option value="${m}">${m}</option>`;
-            marcaInsumoAdd.innerHTML += `<option value="${m}">${m}</option>`;
-        });
-    } catch (err) {
-        console.error("Error cargar marcas:", err);
-    }
+        if (marcaAdd) { marcaAdd.innerHTML = `<option value="">Seleccione marca</option>`; marcas.forEach(m => { const opt = document.createElement("option"); opt.value = m; opt.text = m; marcaAdd.appendChild(opt); }); }
+        if (marcaInsumoAdd) { marcaInsumoAdd.innerHTML = `<option value="">Seleccione marca</option>`; marcas.forEach(m => { const opt = document.createElement("option"); opt.value = m; opt.text = m; marcaInsumoAdd.appendChild(opt); }); }
+    } catch (err) { console.error("Error cargar marcas:", err); }
 }
 
-// ======================================================
-// filtrar insumos por marca
-// ======================================================
-marcaAdd.addEventListener("change", async () => {
+// -------------------------
+// Filtrar insumos por marca
+// -------------------------
+async function filtrarInsumosPorMarca() {
+    if (!marcaAdd || !insumoAdd) return;
     const marca = marcaAdd.value;
     marcaInsumoAdd.value = marca;
-    insumoAdd.innerHTML = `<option value="">Seleccione insumo</option>`;
-
-    if (!marca) return;
+    insumoAdd.innerHTML = `<option value="">Cargando...</option>`;
+    if (!marca) { insumoAdd.innerHTML = `<option value="">Seleccione insumo</option>`; return; }
 
     try {
         const respuesta = await InventarioInsumoService.listar("", 0, 2000);
-        const insumos = Array.isArray(respuesta) ? respuesta : respuesta.content || [];
+        const insumos = Array.isArray(respuesta) ? respuesta : (respuesta?.content || []);
         const filtrados = insumos.filter(i => i.marca === marca);
-        const nombres = [...new Set(filtrados.map(i => i.nombre))];
-        nombres.forEach(n => insumoAdd.innerHTML += `<option value="${n}">${n}</option>`);
-    } catch (err) {
-        console.error("Error filtrando insumos", err);
-    }
-});
+        const nombres = [...new Set(filtrados.map(i => i.nombre).filter(Boolean))].sort();
+        insumoAdd.innerHTML = `<option value="">Seleccione insumo</option>`;
+        nombres.forEach(n => { const opt = document.createElement("option"); opt.value = n; opt.text = n; insumoAdd.appendChild(opt); });
+    } catch (err) { console.error("Error filtrando insumos", err); insumoAdd.innerHTML = `<option value="">Seleccione insumo</option>`; }
+}
 
-// ======================================================
-// guardar / actualizar
-// ======================================================
-btnGuardar.addEventListener("click", async () => {
-    if (!marcaAdd.value || !modeloAdd.value || !inventarioAdd.value || !insumoAdd.value) {
-        return Swal.fire("Error", "Complete los campos obligatorios", "error");
+async function handleGuardar() {
+    if (!btnGuardar) return;
+
+    // validaciones frontales
+    const errores = validarFormulario();
+    if (errores.length) {
+        showToast("error", "Campos inválidos", errores.join("\n"));
+        return;
     }
 
-    const equipoData = {
-        marca: marcaAdd.value,
-        modelo: modeloAdd.value,
-        serie: serieAdd.value,
-        inventario: inventarioAdd.value,
-        solicitante_id: asignadoAdd.value || null,
-        nombre_solicitante: asignadoAdd.options[asignadoAdd.selectedIndex]?.text || "",
-        instalado_en: instaladoAdd.value,
-        insumo: insumoAdd.value,
-        descripcion: descripcionAdd.value,
-        cantidad: Number(cantidadAdd.value || 1),
-        estado: estadoAdd.value,
-        origen: origenAdd.value
-    };
+    const equipoData = construirPayloadDesdeForm();
 
     try {
+        btnGuardar.disabled = true;
+
         if (idEditando) {
-            await service.updateEquipo(idEditando, equipoData);
-            Swal.fire("Éxito", "Registro actualizado", "success");
+            console.log("Editando ID:", idEditando, "Payload:", equipoData);
+
+            // ✅ Verificar primero si el equipo existe
+            const existente = await service.getEquipoById(idEditando);
+            if (existente?.status === "Error") {
+                showToast("error", "No se puede editar", "El equipo no existe");
+                idEditando = null;
+                return;
+            }
+
+            const res = await service.updateEquipo(idEditando, equipoData);
+
+            if (res?.status === "Error" || res?.error) {
+                throw new Error(res.message || "Error al actualizar");
+            }
+
+            showToast("success", "Registro actualizado", "");
         } else {
-            await service.crearEquipo(equipoData);
-            Swal.fire("Éxito", "Registro guardado", "success");
+            const res = await service.crearEquipo(equipoData);
+            if (res?.status === "Error" || res?.error) throw new Error(res.message || "Error al crear");
+            showToast("success", "Registro guardado", "");
         }
 
         limpiarFormulario();
-        cargarInventario();
         idEditando = null;
+        await cargarInventario();
 
+    } catch (err) {
+        console.error("Error guardando:", err);
+        showToast("error", "No se pudo guardar", err?.message || "");
+    } finally {
+        btnGuardar.disabled = false;
+    }
+}
+
+// -------------------------
+// Validaciones
+// -------------------------
+function validarFormulario() {
+    const errores = [];
+    if (!marcaAdd?.value) errores.push("Debe seleccionar una marca");
+    if (!modeloAdd?.value) errores.push("Debe ingresar un modelo");
+    if (!insumoAdd?.value) errores.push("Debe seleccionar un insumo");
+    if (!cantidadAdd?.value || Number(cantidadAdd.value) <= 0) errores.push("Cantidad inválida");
+    if (!estadoAdd?.value) errores.push("Debe seleccionar un estado");
+    return errores;
+}
+
+// -------------------------
+// Construir payload
+// -------------------------
+function construirPayloadDesdeForm() {
+    return {
+        marca: marcaAdd?.value || "",
+        modelo: modeloAdd?.value || "",
+        serie: serieAdd?.value || "",
+        inventario: inventarioAdd?.value || "",
+        nombre_solicitante: asignadoAdd?.value || "",
+        instalado_en: instaladoAdd?.value || "",
+        insumo: insumoAdd?.value || "",
+        descripcion: descripcionAdd?.value || "",
+        cantidad: Number(cantidadAdd?.value || 1),
+        estado: estadoAdd?.value || "pendiente",
+        origen: origenAdd?.value || ""
+    };
+}
+
+// -------------------------
+// Editar desde fila
+// -------------------------
+function handleEditarByRow(tr) {
+    const item = obtenerItemDesdeFila(tr);
+    if (!item) return;
+    idEditando = item.id;
+    if (marcaAdd) marcaAdd.value = item.marca || "";
+    if (modeloAdd) modeloAdd.value = item.modelo || "";
+    if (serieAdd) serieAdd.value = item.serie || "";
+    if (inventarioAdd) inventarioAdd.value = item.inventario || "";
+    if (asignadoAdd) asignadoAdd.value = item.nombre_solicitante || "";
+    if (instaladoAdd) instaladoAdd.value = item.instalado_en || "";
+    if (insumoAdd) insumoAdd.value = item.insumo || "";
+    if (descripcionAdd) descripcionAdd.value = item.descripcion || "";
+    if (cantidadAdd) cantidadAdd.value = item.cantidad || 1;
+    if (estadoAdd) estadoAdd.value = item.estado || "pendiente";
+    if (origenAdd) origenAdd.value = item.origen || "";
+}
+
+// -------------------------
+// Eliminar desde fila
+// -------------------------
+async function handleEliminarByRow(tr, id) {
+    if (!id) return;
+    const confirm = await Swal.fire({ title: "Confirmar eliminación", text: "¿Desea eliminar este registro?", icon: "warning", showCancelButton: true, confirmButtonText: "Sí, eliminar", cancelButtonText: "Cancelar" });
+    if (!confirm.isConfirmed) return;
+
+    try {
+        const res = await service.deleteEquipo(id);
+        if (res?.status === "Error" || res?.error) throw new Error(res.message || "No se pudo eliminar");
+        tr?.remove();
+        showToast("success", "Registro eliminado", "");
     } catch (err) {
         console.error(err);
-        Swal.fire("Error", "No se pudo guardar", "error");
-    }
-});
-
-// ======================================================
-// editar
-// ======================================================
-async function cargarFormularioEdicion(item) {
-    idEditando = item.id;
-
-    marcaAdd.value = item.marca || "";
-
-    // Recargar insumos según marca y luego seleccionar el correcto
-    await recargarInsumosPorMarca(item.marca, item.insumo);
-
-    modeloAdd.value = item.modelo || "";
-    serieAdd.value = item.serie || "";
-    inventarioAdd.value = item.inventario || "";
-    instaladoAdd.value = item.instalado_en || "";
-    descripcionAdd.value = item.descripcion || "";
-    cantidadAdd.value = item.cantidad || 1;
-    estadoAdd.value = item.estado || "pendiente";
-    origenAdd.value = item.origen || "";
-    asignadoAdd.value = item.solicitante_id || "";
-}
-
-// ======================================================
-// recargar insumos por marca (editar)
-// ======================================================
-async function recargarInsumosPorMarca(marca, insumoSeleccionado) {
-    marcaInsumoAdd.value = marca;
-    insumoAdd.innerHTML = `<option value="">Cargando...</option>`;
-
-    try {
-        const respuesta = await InventarioInsumoService.listar("", 0, 2000);
-        const insumos = Array.isArray(respuesta) ? respuesta : respuesta.content || [];
-        const filtrados = insumos.filter(i => i.marca === marca);
-        const nombres = [...new Set(filtrados.map(i => i.nombre))];
-        insumoAdd.innerHTML = `<option value="">Seleccione insumo</option>`;
-        nombres.forEach(n => {
-            insumoAdd.innerHTML += `<option value="${n}" ${n === insumoSeleccionado ? "selected" : ""}>${n}</option>`;
-        });
-    } catch (err) {
-        console.error("Error recargando insumos para edición", err);
-        insumoAdd.innerHTML = `<option value="">Seleccione insumo</option>`;
+        showToast("error", "No se pudo eliminar", err?.message || "");
     }
 }
 
-// ======================================================
-// eliminar
-// ======================================================
-async function eliminarEquipo(id, fila) {
-    const r = await Swal.fire({ title: "¿Eliminar?", showCancelButton: true });
-    if (!r.isConfirmed) return;
-
-    try {
-        await service.deleteEquipo(id);
-        fila.remove();
-        cargarInventario();
-        Swal.fire("Eliminado", "Registro eliminado", "success");
-    } catch {
-        Swal.fire("Error", "No se pudo eliminar", "error");
-    }
-}
-
-// ======================================================
-// limpiar form
-// ======================================================
-function limpiarFormulario() {
-    marcaAdd.value = "";
-    marcaInsumoAdd.value = "";
-    modeloAdd.value = "";
-    insumoAdd.innerHTML = `<option value="">Seleccione insumo</option>`;
-    serieAdd.value = "";
-    inventarioAdd.value = "";
-    asignadoAdd.value = "";
-    instaladoAdd.value = "";
-    descripcionAdd.value = "";
-    cantidadAdd.value = 1;
-    estadoAdd.value = "pendiente";
-    origenAdd.value = "UNIDAD DE TECNOLOGIAS DE LA INFORMACION Y COMUNICACIONES";
-    idEditando = null;
+// -------------------------
+// Filtrar tabla por estado
+// -------------------------
+function filtrarFilasPorEstado() {
+    if (!filtroEstado || !tbody) return;
+    const val = filtroEstado.value;
+    const filas = tbody.querySelectorAll("tr");
+    filas.forEach(tr => {
+        const estado = tr.querySelector(".estado-select")?.value || "pendiente";
+        tr.style.display = val === "" || estado === val ? "" : "none";
+    });
 }

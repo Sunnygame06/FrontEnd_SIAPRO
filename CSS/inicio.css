@@ -20,7 +20,7 @@ body {
   padding: 25px 0;
   box-shadow: 5px 0 12px rgba(0, 0, 0, 0.15);
   transition: all 0.3s ease;
-  z-index: 10;
+  z-index: 1000;
 }
 
 .sidebar h2 {
@@ -41,6 +41,7 @@ body {
   gap: 10px;
   transition: all 0.3s ease;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .nav-item i {
@@ -56,7 +57,7 @@ body {
 
 .nav-item.active {
   background: linear-gradient(90deg, #d66b3d, #e68a58);
- box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
   border-radius: 14px;
   width: 100%;
   font-weight: 600;
@@ -68,7 +69,7 @@ body {
   color: #fff;
 }
 
-/* ===== MÓVIL: Ajuste visual limpio ===== */
+/* MÓVIL */
 @media (max-width: 992px) {
   .nav-item.active {
     background: linear-gradient(135deg, #d66b3d, #e68a58);
@@ -77,6 +78,7 @@ body {
     padding: 10px 16px;
   }
 }
+
 /* ===== MAIN CONTENT ===== */
 .main-content {
   margin-left: 240px;
@@ -94,6 +96,7 @@ body {
   border-radius: 18px;
   padding: 20px 30px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  gap: 15px;
 }
 
 .header img {
@@ -157,18 +160,10 @@ body {
   opacity: 0.95;
 }
 
-.blue {
-  background: linear-gradient(135deg, #1e4f91, #2b6cc4);
-}
-.green {
-  background: linear-gradient(135deg, #28a745, #34ce57);
-}
-.orange {
-  background: linear-gradient(135deg, #f0a500, #f4b73f);
-}
-.red {
-  background: linear-gradient(135deg, #d9534f, #e06560);
-}
+.blue { background: linear-gradient(135deg, #1e4f91, #2b6cc4); }
+.green { background: linear-gradient(135deg, #28a745, #34ce57); }
+.orange { background: linear-gradient(135deg, #f0a500, #f4b73f); }
+.red { background: linear-gradient(135deg, #d9534f, #e06560); }
 
 /* ===== CHARTS ===== */
 .charts {
@@ -187,7 +182,7 @@ body {
   transition: 0.3s;
   flex: 1 1 400px;
   max-width: 600px;
-  min-width: 320px;
+  min-width: 300px;
 }
 
 .chart-box:hover {
@@ -205,12 +200,12 @@ body {
 .chart-box canvas {
   width: 100%;
   height: auto !important;
-  max-height: 300px;
+  max-height: 330px;
   display: block;
   margin: 0 auto;
 }
 
-/* ===== RESPONSIVE ===== */
+/* ===== RESPONSIVE HEAVY ===== */
 @media (max-width: 992px) {
   .sidebar {
     height: 60px;
@@ -221,7 +216,7 @@ body {
     top: 0;
     left: 0;
     background: #a0461b;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    padding: 10px 0;
   }
 
   .sidebar h2 {
@@ -230,26 +225,20 @@ body {
 
   .main-content {
     margin: 0;
-    margin-top: 80px;
+    margin-top: 70px;
     padding: 20px;
   }
 
   .nav-item {
-    margin: 0;
-    padding: 8px;
+    padding: 8px 10px;
     width: auto;
-    border-radius: 8px;
     font-size: 14px;
+    border-radius: 8px;
   }
 
   .charts {
     flex-direction: column;
     align-items: center;
-  }
-
-  .chart-box {
-    width: 100%;
-    max-width: 500px;
   }
 }
 
@@ -274,17 +263,22 @@ body {
 
   .chart-box {
     padding: 15px;
-    width: 100%;
-    max-width: 340px;
+    max-width: 350px;
   }
 
   .chart-box canvas {
-    max-width: 260px;
+    max-height: 240px;
   }
 }
 
 @media (max-width: 400px) {
   .cards {
     grid-template-columns: 1fr;
+  }
+
+  .header {
+    padding: 15px;
+    text-align: center;
+    flex-direction: column;
   }
 }

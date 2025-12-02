@@ -55,7 +55,7 @@ body {
   transform: translateX(4px);
 }
 
-/* ===== ACTIVE MENU FIX ===== */
+/* ===== ACTIVE MENU ===== */
 .nav-item.active {
   background: linear-gradient(90deg, #d66b3d, #e68a58);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
@@ -143,7 +143,8 @@ table {
   font-size: 15px;
 }
 
-th, td {
+th,
+td {
   text-align: center;
   padding: 10px;
   white-space: nowrap;
@@ -214,7 +215,7 @@ tbody tr:hover {
     align-items: stretch;
   }
 
-  .add-btn, 
+  .add-btn,
   .table-actions select {
     width: 100%;
   }
@@ -229,7 +230,8 @@ tbody tr:hover {
 }
 
 @media (max-width: 576px) {
-  th, td {
+  th,
+  td {
     font-size: 13px;
     padding: 8px;
   }
@@ -248,145 +250,140 @@ tbody tr:hover {
   }
 }
 
+/* ===== MODAL ===== */
 .modal-siapro {
-  display:none;
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.4);
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(4px);
-  z-index:999;
+  z-index: 999;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding-right: 12px;
 }
 
-.modal-content-siapro {
-  background:white;
-  width:520px;
-  max-width:92%;
-  padding:25px;
-  border-radius:15px;
-  box-shadow:0 0 25px rgba(0,0,0,0.15);
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%, -50%);
-}
-
-.modal-title-siapro {
-  text-align:center;
-  font-weight:600;
-  margin-bottom:20px;
-  color:#2457A6;
-}
-
-.form-siapro {
-  display:flex;
-  flex-direction:column;
-  gap:15px;
-}
-
-.form-group-siapro label {
-  font-weight:500;
-  color:#1E4F91;
-}
-
-.form-group-siapro input,
-.form-group-siapro select {
-  width:100%;
-  padding:10px;
-  border:1px solid #bfc7d1;
-  border-radius:8px;
-  outline:none;
-  transition:0.2s;
-  background:#F5F7FA;
-}
-
-.form-group-siapro input:focus,
-.form-group-siapro select:focus {
-  border-color:#2457A6;
-}
-
-.btn-siapro {
-  width:100%;
-  padding:12px;
-  background:#2457A6;
-  color:white;
-  border:none;
-  border-radius:8px;
-  font-weight:600;
-  cursor:pointer;
-  transition:0.2s;
-}
-
-.btn-siapro:hover {
-  background:#1E4F91;
-}
-
-.close-btn-siapro {
-  background:none;
-  border:none;
-  font-size:24px;
-  position:absolute;
-  right:15px;
-  top:15px;
-  cursor:pointer;
-  color:#2457A6;
-}
-
-body.blurred .main-content,
-body.blurred .sidebar {
-  filter: blur(4px);
-}
-/* Hacer que el modal sea scrollable */
-.modal-siapro {
-  max-height: 90vh;           /* No pasa del alto de pantalla */
-  overflow-y: auto;           /* Activa scroll vertical */
-  padding-right: 12px;        /* Para que no pegue al borde */
-}
-
-/* Scroll suave y delgado */
+/* Scrollbar */
 .modal-siapro::-webkit-scrollbar {
   width: 6px;
 }
 
 .modal-siapro::-webkit-scrollbar-thumb {
-  background: #1A3D6F;
+  background: #1a3d6f;
   border-radius: 10px;
 }
 
 .modal-siapro::-webkit-scrollbar-track {
   background: #e8edf5;
 }
-/* Fondo del modal */
+
+.modal-content-siapro {
+  background: white;
+  width: 520px;
+  max-width: 92%;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.modal-title-siapro {
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #2457a6;
+}
+
+.form-siapro {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form-group-siapro label {
+  font-weight: 500;
+  color: #1e4f91;
+}
+
+.form-group-siapro input,
+.form-group-siapro select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #bfc7d1;
+  border-radius: 8px;
+  outline: none;
+  transition: 0.2s;
+  background: #f5f7fa;
+}
+
+.form-group-siapro input:focus,
+.form-group-siapro select:focus {
+  border-color: #2457a6;
+}
+
+.btn-siapro {
+  width: 100%;
+  padding: 12px;
+  background: #2457a6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-siapro:hover {
+  background: #1e4f91;
+}
+
+.close-btn-siapro {
+  background: none;
+  border: none;
+  font-size: 24px;
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  cursor: pointer;
+  color: #2457a6;
+}
+
+body.blurred .main-content,
+body.blurred .sidebar {
+  filter: blur(4px);
+}
+
+/* ===== INFO MODAL SPECIAL STYLES ===== */
 #infoModal {
-  background: #FDEFE4 !important;
+  background: #fde fe4 !important;
   border-radius: 18px !important;
   padding: 28px !important;
 }
 
-/* Título */
 #infoModal h4 {
-  color: #8A3B20 !important;
+  color: #8a3b20 !important;
   font-weight: 700 !important;
   margin-bottom: 25px !important;
 }
 
-/* Tarjetas internas */
 #infoModal .p-2 {
-  background: #F4D8CE !important;
-  color: #8A3B20 !important;
+  background: #f4d8ce !important;
+  color: #8a3b20 !important;
   border-radius: 10px !important;
   font-size: 15px !important;
   font-weight: 600;
 }
 
-/* Etiquetas fuertes (Nombre:, Cargo:, etc.) */
 #infoModal strong {
-  color: #8A3B20 !important;
+  color: #8a3b20 !important;
 }
 
-/* Botón de cierre */
 #infoModal .btn-close {
   filter: brightness(0.4);
 }

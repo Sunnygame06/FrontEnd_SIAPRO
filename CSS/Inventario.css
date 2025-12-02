@@ -1,4 +1,6 @@
-/* ===== CONFIGURACIÓN GLOBAL ===== */
+/* =========================================
+   GLOBAL
+========================================= */
 body {
   font-family: 'Poppins', sans-serif;
   background-color: #f4f4f4;
@@ -8,7 +10,9 @@ body {
   overflow-x: hidden;
 }
 
-/* ===== SIDEBAR ===== */
+/* =========================================
+   SIDEBAR
+========================================= */
 .sidebar {
   background: #a0461b;
   color: white;
@@ -31,7 +35,7 @@ body {
   letter-spacing: 1px;
 }
 
-/* ===== MENÚ ===== */
+/* MENU */
 .nav-item {
   color: #fff;
   text-decoration: none;
@@ -57,17 +61,17 @@ body {
   transform: translateX(4px);
 }
 
-/* ===== ACTIVE MENU FIX ===== */
 .nav-item.active {
   background: linear-gradient(90deg, #d66b3d, #e68a58);
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
   width: 95%;
   border-radius: 12px;
   font-weight: 600;
-  transform: none;
 }
 
-/* ===== CONTENIDO PRINCIPAL ===== */
+/* =========================================
+   MAIN CONTENT
+========================================= */
 .main-content {
   margin-left: 240px;
   padding: 30px;
@@ -80,7 +84,9 @@ h1 {
   margin-bottom: 25px;
 }
 
-/* ===== FORMULARIOS ===== */
+/* =========================================
+   FORMS
+========================================= */
 .form-wrapper {
   display: flex;
   gap: 30px;
@@ -128,7 +134,7 @@ h1 {
   outline: 2px solid #1e4f91;
 }
 
-/* ===== BOTÓN GUARDAR ===== */
+/* BUTTON GUARDAR */
 .btn-guardar {
   background: #ffa200;
   color: #fff;
@@ -145,7 +151,9 @@ h1 {
   background: #e69100;
 }
 
-/* ===== TABLA ===== */
+/* =========================================
+   TABLE
+========================================= */
 .table-container {
   background: #fff;
   padding: 20px;
@@ -179,7 +187,7 @@ h1 {
   background: #163b6b;
 }
 
-/* ===== BUSCADOR ===== */
+/* SEARCH */
 .search-box {
   position: relative;
   flex: 1;
@@ -203,7 +211,45 @@ h1 {
   color: #555;
 }
 
-/* ===== MODAL INFORMACIÓN ===== */
+thead th {
+  text-align: center;
+  vertical-align: middle;
+  padding: 10px;
+  background-color: #000 !important;
+  color: #fff !important;
+}
+
+/* ESTADOS */
+.estado-entregado {
+  background-color: #c8f7c5 !important;
+  transition: background-color 0.3s ease;
+}
+
+.estado-pendiente {
+  background-color: #fff7ae !important;
+  transition: background-color 0.3s ease;
+}
+
+tr.estado-entregado > td,
+tr.estado-pendiente > td {
+  background-color: inherit !important;
+}
+
+/* Detalle icon fix */
+.ver-detalle {
+  position: relative;
+  z-index: 10;
+  cursor: pointer;
+}
+
+select {
+  position: relative;
+  z-index: 1;
+}
+
+/* =========================================
+   MODAL INFO
+========================================= */
 .info-modal {
   background: #fdf3ef;
   border-radius: 20px;
@@ -242,7 +288,69 @@ h1 {
   color: #7b3b1e;
 }
 
-/* ===== RESPONSIVE DESIGN ===== */
+/* =========================================
+   PAGINATION
+========================================= */
+.pagination-container {
+  margin-top: 20px;
+  padding: 15px 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.page-size-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.page-size-box select {
+  width: 80px;
+  border-radius: 8px;
+  background: #ececec;
+  border: none;
+  padding: 6px 10px;
+  font-size: 14px;
+  box-shadow: inset 1px 1px 3px rgba(0,0,0,.1);
+}
+
+.pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pagination-buttons button {
+  padding: 6px 15px;
+  border-radius: 8px;
+  border: none;
+  background: #1e4f91;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.pagination-buttons button:hover {
+  background: #163b6b;
+}
+
+.page-info {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
 @media (max-width: 1200px) {
   .form-section {
     width: 48%;
@@ -256,8 +364,6 @@ h1 {
     flex-direction: row;
     justify-content: space-around;
     align-items: center;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
-    position: fixed;
     top: 0;
     left: 0;
     z-index: 99;
@@ -334,111 +440,12 @@ h1 {
     text-align: center;
     float: none;
   }
-}
 
-.estado-entregado {
-  background-color: #c8f7c5 !important; /* verde claro */
-  transition: background-color 0.3s ease;
-}
-
-.estado-pendiente {
-  background-color: #fff7ae !important; /* amarillo claro */
-  transition: background-color 0.3s ease;
-}
-
-
-tr.estado-entregado > td,
-tr.estado-pendiente > td {
-  background-color: inherit !important;
-
-}
-
-/* --- Soluciona el problema del icono del ojo que no responde --- */
-.ver-detalle {
-  position: relative;
-  z-index: 10;
-  cursor: pointer;
-}
-
-select {
-  position: relative;
-  z-index: 1;
-}
-
-
-thead th {
-  text-align: center;
-  vertical-align: middle;
-  padding: 10px;
-  background-color: #000 !important;
-  color: #fff !important; 
-}
-
-/* ===== PAGINACIÓN ===== */
-
-.pagination-container {
-  margin-top: 20px;
-  padding: 15px 20px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.page-size-box {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-}
-
-.page-size-box select {
-  width: 80px;
-  border-radius: 8px;
-  background: #ececec;
-  border: none;
-  padding: 6px 10px;
-  font-size: 14px;
-  box-shadow: inset 1px 1px 3px rgba(0,0,0,.1);
-}
-
-.pagination-buttons {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.pagination-buttons button {
-  padding: 6px 15px;
-  border-radius: 8px;
-  border: none;
-  background: #1e4f91;
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.pagination-buttons button:hover {
-  background: #163b6b;
-}
-
-.page-info {
-  font-size: 15px;
-  font-weight: 600;
-  color: #333;
-}
-
-/* ===== RESPONSIVE PAGINATION ===== */
-@media (max-width: 576px) {
   .pagination-container {
     flex-direction: column;
     text-align: center;
   }
+
   .pagination-buttons {
     width: 100%;
     justify-content: center;
